@@ -17,6 +17,11 @@ class EntriesController < ApplicationController
        end
    end
 
+   def destroy
+       Entry.find(params[:id]).destroy
+       redirect_to root_url
+   end
+
    private
 
    def entry_params
