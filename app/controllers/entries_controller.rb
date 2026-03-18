@@ -2,7 +2,7 @@ class EntriesController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @entries = current_user.entries
+    @entries = current_user.entries.with_attached_images
   end
 
   def new
@@ -28,6 +28,6 @@ class EntriesController < ApplicationController
   private
 
   def entry_params
-    params.require(:entry).permit(:name, :link)
+    params.require(:entry).permit(:name, :link, images: [])
   end
 end
