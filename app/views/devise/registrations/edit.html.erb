@@ -1,0 +1,76 @@
+<div class="row justify-content-center mt-4">
+  <div class="col-md-8">
+    
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">My Profile</h3>
+        <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-outline-light btn-sm" %>
+      </div>
+
+      <div class="card-body">
+        <h4 class="mb-3 text-primary">Personal Details</h4>
+        <div class="row mb-2">
+          <div class="col-sm-4 fw-bold text-muted">First Name:</div>
+          <div class="col-sm-8"><%= resource.first_name %></div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-sm-4 fw-bold text-muted">Last Name:</div>
+          <div class="col-sm-8"><%= resource.last_name %></div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-sm-4 fw-bold text-muted">Email Address:</div>
+          <div class="col-sm-8"><%= resource.email %></div>
+        </div>
+
+        <hr>
+
+        <h4 class="mb-3 mt-4 text-primary">Change Password</h4>
+        
+        <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, data: { turbo: false } }) do |f| %>
+          <%= render "devise/shared/error_messages", resource: resource %>
+
+          <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+            <div class="alert alert-warning">Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
+          <% end %>
+
+          <div class="card bg-light border-0 mb-3 p-3">
+            <div class="mb-3">
+              <%= f.label :password, "New Password", class: "form-label fw-bold" %> 
+              <span class="text-muted small">(leave blank if you don't want to change it)</span>
+              <%= f.password_field :password, autocomplete: "new-password", class: "form-control" %>
+              <% if @minimum_password_length %>
+                <div class="form-text"><%= @minimum_password_length %> characters minimum</div>
+              <% end %>
+            </div>
+
+            <div class="mb-0">
+              <%= f.label :password_confirmation, "Confirm New Password", class: "form-label fw-bold" %>
+              <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control" %>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <%= f.label :current_password, "Current Password", class: "form-label fw-bold text-danger" %>
+            <span class="text-muted small">(we need your current password to confirm your changes)</span>
+            <%= f.password_field :current_password, autocomplete: "current-password", class: "form-control" %>
+          </div>
+
+          <div class="actions d-grid">
+            <%= f.submit "Update Password", class: "btn btn-success btn-lg" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-danger mb-5">
+      <div class="card-header bg-danger text-white">
+        <h4 class="mb-0">Danger Zone</h4>
+      </div>
+      <div class="card-body">
+        <p class="card-text text-muted">Unhappy with the journal? You can permanently delete your account. This action will erase your data and cannot be undone.</p>
+        <%= button_to "Delete my account", registration_path(resource_name), data: { confirm: "Are you sure? This cannot be undone.", turbo_confirm: "Are you absolutely sure you want to delete your account?" }, method: :delete, class: "btn btn-outline-danger" %>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
- root 'entries#index'
- resources :entries, only: [:create, :new, :destroy]
+  devise_for :users
+  root 'home#index'
+  resources :entries, only: [:index, :create, :new, :destroy]
 end
