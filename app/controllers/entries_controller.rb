@@ -2,7 +2,7 @@ class EntriesController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @entries = Entry.all
+    @entries = current_user.entries
   end
 
   def new
@@ -10,7 +10,8 @@ class EntriesController < ApplicationController
   end
 
   def create
-    @entry = Entry.new(entry_params)
+    @entry = current_user.entries.build(entry_params)
+    
     if @entry.save
       redirect_to entries_path
     else
@@ -19,7 +20,8 @@ class EntriesController < ApplicationController
   end
 
   def destroy
-    Entry.find(params[:id]).destroy
+    @entry = current_user.entries.find(params[:id])
+    @entry.destroy    
     redirect_to entries_path
   end
 
