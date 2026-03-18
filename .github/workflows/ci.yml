@@ -19,6 +19,9 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Update default gems
+        run: gem install error_highlight -v 0.7.0
+
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
@@ -35,6 +38,9 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Update default gems
+        run: gem install error_highlight -v 0.7.0
+
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
@@ -49,6 +55,9 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+
+      - name: Update default gems
+        run: gem install error_highlight -v 0.7.0
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
@@ -84,13 +93,18 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+          
+      - name: Update default gems
+        run: gem install error_highlight -v 0.7.0
 
       - name: Run tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # REDIS_URL: redis://localhost:6379/0
-        run: bundle exec rails db:test:prepare test test:system
+        run: |
+          bundle exec bin/rails db:test:prepare
+          bundle exec bin/rails test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
