@@ -1,2 +1,87 @@
-<h1>Home</h1>
+<div class="container-fluid vh-100 d-flex align-items-center" data-controller="auth">
+  <div class="row w-100">
+    
+    <div class="col-md-6 d-flex justify-content-center align-items-center">
+      <h1 class="brand-huge text-center text-md-start mb-5 mb-md-0">
+        IRL<br>Journaly
+      </h1>
+    </div>
 
+    <div class="col-md-6 d-flex flex-column justify-content-center align-items-center">
+      
+      <div class="d-grid gap-4 w-50" data-auth-target="menu">
+        <button data-action="click->auth#showLogin" class="btn btn-dark btn-lg fs-2 rounded-pill shadow">Log in</button>
+        <button data-action="click->auth#showSignup" class="btn btn-outline-dark btn-lg fs-2 rounded-pill shadow">Sign up</button>
+      </div>
+
+      <div class="w-75 d-none" data-auth-target="login">
+        <button data-action="click->auth#showMenu" class="btn btn-link text-dark text-decoration-none mb-3 fs-3">< Back</button>
+        <h2 class="fw-bold mb-4 text-center fs-1">Log In</h2>
+        
+        <div data-auth-target="loginError"></div>
+        
+        <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { data: { turbo: false, action: "submit->auth#submitLogin" } }) do |f| %>
+          <div class="mb-3">
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control form-control-lg hand-input", placeholder: "Email" %>
+          </div>
+          <div class="mb-3">
+            <%= f.password_field :password, autocomplete: "current-password", class: "form-control form-control-lg hand-input", placeholder: "Password" %>
+          </div>
+          <div class="d-grid mb-3">
+            <%= f.submit "Log in", class: "btn btn-dark btn-lg rounded-pill fs-3" %>
+          </div>
+          <div class="text-center">
+            <button type="button" data-action="click->auth#showForgot" class="btn btn-link text-dark fs-4">Forgot your password?</button>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="w-75 d-none" data-auth-target="signup">
+        <button data-action="click->auth#showMenu" class="btn btn-link text-dark text-decoration-none mb-3 fs-3">< Back</button>
+        <h2 class="fw-bold mb-4 text-center fs-1">Sign Up</h2>
+        
+        <div data-auth-target="signupError"></div>
+
+        <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { data: { turbo: false, action: "submit->auth#submitSignup" } }) do |f| %>
+          <div class="row">
+            <div class="col-6 mb-3">
+              <%= f.text_field :first_name, autofocus: true, class: "form-control form-control-lg hand-input", placeholder: "First Name" %>
+            </div>
+            <div class="col-6 mb-3">
+              <%= f.text_field :last_name, class: "form-control form-control-lg hand-input", placeholder: "Last Name" %>
+            </div>
+          </div>
+          <div class="mb-3">
+            <%= f.email_field :email, autocomplete: "email", class: "form-control form-control-lg hand-input", placeholder: "Email" %>
+          </div>
+          <div class="mb-3">
+            <%= f.password_field :password, autocomplete: "new-password", class: "form-control form-control-lg hand-input", placeholder: "Password (min 6)" %>
+          </div>
+          <div class="mb-4">
+            <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control form-control-lg hand-input", placeholder: "Confirm Password" %>
+          </div>
+          <div class="d-grid">
+            <%= f.submit "Sign up", class: "btn btn-dark btn-lg rounded-pill fs-3" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="w-75 d-none" data-auth-target="forgot">
+        <button data-action="click->auth#showLogin" class="btn btn-link text-dark text-decoration-none mb-3 fs-3">< Back</button>
+        <h2 class="fw-bold mb-4 text-center fs-1">Reset Password</h2>
+        
+        <div data-auth-target="forgotError"></div>
+
+        <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { data: { turbo: false, action: "submit->auth#submitForgot" } }) do |f| %>
+          <div class="mb-4">
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control form-control-lg hand-input", placeholder: "Email" %>
+          </div>
+          <div class="d-grid">
+            <%= f.submit "Send reset link", class: "btn btn-dark btn-lg rounded-pill fs-3" %>
+          </div>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>

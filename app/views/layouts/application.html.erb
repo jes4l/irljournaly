@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html>
  <head>
-   <title>RubyLearnJounral</title>
+   <title>IRL Journaly</title>
    <meta name="viewport" content="width=device-width,initial-scale=1">
    <%= csrf_meta_tags %>
    <%= csp_meta_tag %>
 
+   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+   
    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
    <%= javascript_importmap_tags %>
  </head>
 
- <body>
+ <body class="<%= user_signed_in? ? 'bg-calendar text-dark' : 'bg-white text-dark' %>">
    <%= render 'shared/navbar' %>
    
-   <div class="container mt-4">
-     
-     <% flash.each do |key, message| %>
-       <div class="alert alert-<%= key == 'notice' ? 'success' : 'danger' %> shadow-sm" data-controller="flash">
-         <%= message %>
-       </div>
-     <% end %>
-     <%= yield %>
-   </div>
+   <% flash.each do |key, message| %>
+     <div class="alert alert-<%= key == 'notice' ? 'success' : 'danger' %> shadow-sm m-3 position-absolute top-0 start-50 translate-middle-x z-index-master" style="z-index: 1050;" data-controller="flash">
+       <%= message %>
+     </div>
+   <% end %>
+
+   <%= yield %>
  </body>
 </html>

@@ -1,23 +1,31 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-  <div class="container-fluid">
-    <%= link_to "Ruby Learning Journal", root_path, class: "navbar-brand fw-bold" %>
-    
-    <div class="d-flex align-items-center">
-      <% if user_signed_in? %>
-        <%= link_to "My Entries", entries_path, class: "btn btn-outline-light btn-sm me-2" %>
-        <%= link_to "New Entry", new_entry_path, class: "btn btn-outline-light btn-sm me-4" %>
+<% if user_signed_in? %>
+  <nav class="navbar navbar-expand-lg navbar-light border-bottom border-dark" style="background-color: #efe2d0;">
+    <div class="container-fluid px-4">
+      <%= link_to "IRL Journaly", root_path, class: "navbar-brand fw-bold fs-2" %>
+      
+      <button class="navbar-toggler border-dark" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fs-3 gap-4">
+          <li class="nav-item">
+            <%= link_to "Write", new_entry_path, class: "nav-link text-dark fw-bold" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to "Calendar", entries_path, class: "nav-link text-dark fw-bold" %>
+          </li>
+          <li class="nav-item">
+            <%= link_to "Gallery", "#", class: "nav-link text-dark fw-bold" %> </li>
+        </ul>
         
-        <%= link_to edit_user_registration_path, class: "text-light text-decoration-none d-flex align-items-center" do %>
-          <div class="bg-secondary rounded-circle d-flex justify-content-center align-items-center text-white me-2" style="width: 35px; height: 35px; font-weight: bold;">
-            <%= current_user.first_name.present? ? current_user.first_name[0].upcase : "👤" %>
-          </div>
-          <span class="d-none d-sm-inline">Profile</span>
-        <% end %>
-
-      <% else %>
-        <%= link_to "Log in", new_user_session_path, class: "btn btn-outline-light btn-sm me-2" %>
-        <%= link_to "Sign up", new_user_registration_path, class: "btn btn-primary btn-sm" %>
-      <% end %>
+        <div class="d-flex align-items-center gap-3">
+          <%= link_to edit_user_registration_path, class: "text-dark text-decoration-none fs-4" do %>
+            Profile
+          <% end %>
+          <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-dark fs-5 rounded-pill px-3" %>
+        </div>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+<% end %>

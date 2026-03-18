@@ -2,6 +2,7 @@ class EntriesController < ApplicationController
   before_action :authenticate_user!
 
   def index
+    @current_date = params[:date] ? Date.parse(params[:date]) : Date.today
     @entries = current_user.entries.with_attached_images
   end
 

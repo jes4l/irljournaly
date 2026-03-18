@@ -1,16 +1,48 @@
-/*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
- *
- * Any CSS (and SCSS, if configured) file within this directory, lib/assets/stylesheets, or any plugin's
- * vendor/assets/stylesheets directory can be referenced here using a relative path.
- *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any other CSS
- * files in this directory. Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
- *
- *= require_tree .
- *= require_self
- */
 @import "bootstrap";
+
+body {
+  font-family: 'Patrick Hand', cursive;
+}
+
+.bg-calendar {
+  background-color: #efe2d0;
+  color: black;
+}
+
+.brand-huge {
+  font-size: 8rem;
+  line-height: 1.1;
+  font-weight: bold;
+}
+
+.hand-input {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.5rem;
+}
+
+.calendar-day {
+  height: 80px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: #e6d5bd !important;
+    cursor: pointer;
+  }
+}
+
+.calendar-day-empty {
+  height: 80px;
+}
+
+.calendar-header {
+  font-size: 1.8rem;
+  font-weight: bold;
+  border-bottom: none !important;
+}
+
+.hover-scale {
+  transition: transform 0.2s;
+  &:hover {
+    transform: scale(1.3);
+  }
+}
