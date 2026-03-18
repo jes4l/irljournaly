@@ -1,0 +1,23 @@
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between mb-3 px-5">
+    <%= link_to "< Back to Calendar", entries_path, class: "btn btn-outline-dark fw-bold rounded-pill" %>
+    <% if @entry.created_at.to_date == Date.today %>
+      <%= link_to "Edit Today's Journal", new_entry_path, class: "btn btn-dark fw-bold rounded-pill" %>
+    <% end %>
+  </div>
+
+  <div class="journal-container">
+    <div class="journal-book read-only-book">
+      
+      <div class="position-absolute top-0 start-0 m-4 p-3 border border-dark rounded bg-white shadow-sm text-center z-3" style="font-family: 'Patrick Hand', cursive; line-height: 1;">
+        <div style="font-size: 3.5rem; font-weight: bold;"><%= @entry.created_at.strftime("%d") %></div>
+        <div style="font-size: 1.5rem;"><%= @entry.created_at.strftime("%B '%y") %></div>
+      </div>
+
+      <div class="journal-page w-100 h-100 position-absolute top-0 start-0">
+        <%== @entry.content %>
+      </div>
+
+    </div>
+  </div>
+</div>

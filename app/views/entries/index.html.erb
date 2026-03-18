@@ -4,7 +4,9 @@
   date_range = (start_date..end_date).to_a
 %>
 
-<div class="container mt-4 mb-5" style="max-width: 800px;"> <div class="d-flex justify-content-center align-items-center mb-4 gap-4">
+<div class="container mt-4 mb-5" style="max-width: 800px;">
+  
+  <div class="d-flex justify-content-center align-items-center mb-4 gap-4">
     <%= link_to "<", entries_path(date: @current_date.prev_month), class: "text-dark text-decoration-none fs-1 fw-bold hover-scale" %>
     <h1 style="font-size: 4rem; font-weight: bold; margin: 0;"><%= @current_date.strftime("%B %Y") %></h1>
     <%= link_to ">", entries_path(date: @current_date.next_month), class: "text-dark text-decoration-none fs-1 fw-bold hover-scale" %>
@@ -25,9 +27,20 @@
       <% week.each do |day| %>
         <div class="col p-0 m-1">
           <% if day.month == @current_date.month %>
-            <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-white shadow-sm border border-dark">
-              <span class="fw-bold fs-2"><%= day.day %></span>
-            </div>
+            <% entry = @entries_by_date[day] %>
+            
+            <% if entry %>
+              <%= link_to entry_path(entry), class: "text-decoration-none text-white" do %>
+                <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-success shadow-sm border border-dark hover-scale">
+                  <span class="fw-bold fs-2"><%= day.day %></span>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-white shadow-sm border border-dark">
+                <span class="fw-bold fs-2 text-dark"><%= day.day %></span>
+              </div>
+            <% end %>
+            
           <% else %>
             <div class="calendar-day-empty"></div>
           <% end %>

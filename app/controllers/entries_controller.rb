@@ -3,18 +3,27 @@ class EntriesController < ApplicationController
 
   def index
     @current_date = params[:date] ? Date.parse(params[:date]) : Date.today
-    @entries = current_user.entries.with_attached_images
+    start_date = @current_date.beginning_of_month.beginning_of_week(:sunday)
+    end_date = @current_date.end_of_month.end_of_week(:sunday)
+    
+    @entries_by_date = current_user.entries
+                                   .where(created_at: start_date.beginning_of_day..end_date.end_of_day)
+                                   .index_by { |e| e.created_at.to_date }
+  end
+
+  def show
+    @entry = current_user.entries.find(params[:id])
   end
 
   def new
-    @entry = Entry.new
+    @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_initialize
   end
 
   def create
-    @entry = current_user.entries.build(entry_params)
+    @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_initialize
     
-    if @entry.save
-      redirect_to entries_path
+    if @entry.update(entry_params)
+      redirect_to entries_path, notice: "Journal saved successfully!"
     else
       render :new
     end
@@ -23,12 +32,12 @@ class EntriesController < ApplicationController
   def destroy
     @entry = current_user.entries.find(params[:id])
     @entry.destroy    
-    redirect_to entries_path
+    redirect_to entries_path, notice: "Entry deleted."
   end
 
   private
 
   def entry_params
-    params.require(:entry).permit(:name, :link, images: [])
+    params.require(:entry).permit(:name, :link, :content, images: [])
   end
 end

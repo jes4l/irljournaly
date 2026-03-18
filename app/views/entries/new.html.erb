@@ -1,39 +1,56 @@
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow-sm mt-4">
-      <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">Create a New Entry</h3>
-      </div>
-      
-      <div class="card-body">
-        <%= form_with(model: @entry) do |form| %>
-          
-          <div class="mb-3">
-            <%= form.label :name, class: "form-label fw-bold" %>
-            <%= form.text_field :name, class: "form-control", placeholder: "Name now?" %>
-          </div>
-
-          <div class="mb-3">
-            <%= form.label :link, "Link", class: "form-label fw-bold" %>
-            <%= form.text_field :link, class: "form-control", placeholder: "https://..." %>
-          </div>
-
-          <div class="mb-4">
-            <%= form.label :images, "Upload Images", class: "form-label fw-bold" %>
-            <%= form.file_field :images, multiple: true, accept: "image/*", class: "form-control" %>
-            <div class="form-text">You can upload multiple high-quality images.</div>
-          </div>
-
-          <div class="d-grid">
-            <%= form.submit "Save Entry", class: "btn btn-primary btn-lg" %>
-          </div>
-
-        <% end %>
-      </div>
-      
-      <div class="card-footer text-center bg-light">
-        <%= link_to "Cancel and go back", root_path, class: "text-decoration-none text-secondary" %>
-      </div>
+<div class="journal-container mt-4" data-controller="journal-editor">
+  
+  <div class="journal-book" data-action="mousemove->journal-editor#drag mouseup->journal-editor#dragEnd mouseleave->journal-editor#dragEnd">
+    
+    <div class="position-absolute top-0 start-0 m-4 p-3 border border-dark rounded bg-white shadow-sm text-center z-3" style="font-family: 'Patrick Hand', cursive; line-height: 1;">
+      <div style="font-size: 3.5rem; font-weight: bold;"><%= Date.today.strftime("%d") %></div>
+      <div style="font-size: 1.5rem;"><%= Date.today.strftime("%B '%y") %></div>
     </div>
+
+    <div class="journal-page w-100 h-100 position-absolute top-0 start-0" data-journal-editor-target="canvas">
+      <% if @entry.content.present? %>
+        <%== @entry.content %>
+      <% end %>
+    </div>
+
+    <div class="journal-toolbar shadow">
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0 text-dark fw-bold" style="font-family: sans-serif; font-size: 0.8rem;">Size</label>
+        <input type="range" class="form-range" min="1" max="7" value="4" data-journal-editor-target="sizeInput" data-action="input->journal-editor#changeSize" style="width: 70px;">
+      </div>
+
+      <div class="vr bg-secondary mx-1"></div>
+
+      <button class="btn btn-outline-dark border-0 btn-sm fw-bold" data-journal-editor-target="boldBtn" data-action="click->journal-editor#format" data-command="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
+      <button class="btn btn-outline-dark border-0 btn-sm fst-italic" data-journal-editor-target="italicBtn" data-action="click->journal-editor#format" data-command="italic" title="Italic"><i class="bi bi-type-italic"></i></button>
+      <button class="btn btn-outline-dark border-0 btn-sm text-decoration-underline" data-journal-editor-target="underlineBtn" data-action="click->journal-editor#format" data-command="underline" title="Underline"><i class="bi bi-type-underline"></i></button>
+      
+      <select class="form-select form-select-sm w-auto border-dark bg-transparent font-weight-bold" data-journal-editor-target="fontInput" data-action="change->journal-editor#changeFont">
+        <option value="'Patrick Hand', cursive">Patrick Hand</option>
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Courier New', Courier, monospace">Courier</option>
+        <option value="'Comic Sans MS', cursive">Comic Sans</option>
+      </select>
+
+      <div class="vr bg-secondary mx-2"></div>
+
+      <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#addText" title="Add Text">
+        <i class="bi bi-pencil-fill"></i>
+      </button>
+      <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#triggerImage" title="Add Image">
+        <i class="bi bi-image-fill"></i>
+      </button>
+
+      <div class="vr bg-secondary mx-2"></div>
+
+      <button class="btn btn-success btn-sm fw-bold rounded-pill px-3" data-action="click->journal-editor#save">Save</button>
+    </div>
+
+    <%= form_with model: @entry, url: entries_path, method: :post, html: { class: "d-none", data: { journal_editor_target: "form" } } do |f| %>
+      <%= f.hidden_field :content, data: { journal_editor_target: "contentInput" } %>
+      <%= f.file_field :images, multiple: true, data: { journal_editor_target: "imageInput", action: "change->journal-editor#handleImage" } %>
+    <% end %>
+
   </div>
 </div>
