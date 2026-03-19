@@ -5,8 +5,10 @@ class GenerateSplatJob < ApplicationJob
   queue_as :default
 
   def perform(entry_id, image_blob_id)
-    entry = Entry.find(entry_id)
-    image = ActiveStorage::Blob.find(image_blob_id)
+    entry = Entry.find_by(id: entry_id)
+    image = ActiveStorage::Blob.find_by(id: image_blob_id)
+
+    return unless entry && image
 
     Dir.mktmpdir do |tmp_dir|
       input_dir = File.join(tmp_dir, 'input_images')
@@ -24,14 +26,14 @@ class GenerateSplatJob < ApplicationJob
 
       ply_file = Dir.glob(File.join(output_dir, "*.ply")).first
 
-      if ply_file
+      if ply_file && entry.reload && ActiveStorage::Blob.exists?(image.id)
         entry.splats.attach(
           io: File.open(ply_file),
           filename: "#{image.filename.base}.ply",
           content_type: 'application/octet-stream'
         )
       else
-        Rails.logger.error("ML Sharp failed to generate a PLY file for #{image.filename}")
+        Rails.logger.error("ML Sharp failed or image was deleted for #{image.filename}")
       end
     end
   end

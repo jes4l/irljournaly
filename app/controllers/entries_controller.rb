@@ -22,17 +22,45 @@ class EntriesController < ApplicationController
   def create
     @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_initialize
     
-    if @entry.update(entry_params)
-      if @entry.images.attached?
-        @entry.images.each do |image|
-          GenerateSplatJob.perform_later(@entry.id, image.blob_id)
-        end
-      end
-      
-      redirect_to entries_path, notice: "Journal saved successfully!"
+    if @entry.update(entry_params.except(:images))
+      redirect_to entries_path, notice: "Journal saved!"
     else
       render :new
     end
+  end
+
+  def upload_image
+    @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_create!(name: "Journal #{Date.today}")
+    
+    image = params[:image]
+    if image
+      @entry.images.attach(image)
+      latest_blob = @entry.images.last.blob
+      
+      GenerateSplatJob.perform_later(@entry.id, latest_blob.id)
+      
+      render json: { 
+        success: true, 
+        image_url: url_for(latest_blob), 
+        image_id: @entry.images.last.id 
+      }
+    else
+      render json: { success: false }, status: :unprocessable_entity
+    end
+  end
+
+  def delete_image
+    image = ActiveStorage::Attachment.find_by(id: params[:image_id])
+    
+    if image
+      filename = image.blob.filename.to_s
+      system("pkill -f '#{filename}'")
+      splat = image.record.splats.find { |s| s.filename.to_s.start_with?(image.filename.base) }
+      splat&.purge
+      image.purge
+    end
+    
+    render json: { success: true }
   end
 
   def destroy
@@ -44,6 +72,6 @@ class EntriesController < ApplicationController
   private
 
   def entry_params
-    params.require(:entry).permit(:name, :link, :content, images: [])
+    params.require(:entry).permit(:name, :link, :content)
   end
 end
