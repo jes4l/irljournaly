@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+trap 'echo -e "\nShutting down all processes..."; kill 0' SIGINT SIGTERM EXIT
+
+echo "Preparing database..."
+bin/rails db:prepare
+
+echo "Starting Rails Server on port 3000..."
+bin/rails server -p 3000 &
+
+echo "Starting Solid Queue (Background Jobs)..."
+bin/jobs &
+
+echo "Starting Cloudflare Tunnel..."
+
+cloudflared tunnel run --url http://localhost:3000 mac-host &
+
+wait
