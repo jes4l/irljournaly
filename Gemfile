@@ -68,3 +68,5 @@ gem "devise", "~> 5.0"
 gem "letter_opener", "~> 1.10", :group => :development
 
 gem "dotenv-rails", "~> 3.2", :groups => [:development, :test]
+
+gem "solid_queue", "~> 1.3"

@@ -1,7 +1,11 @@
-# Pin npm packages by running ./bin/importmap
-
 pin "application"
 pin "@hotwired/turbo-rails", to: "turbo.min.js"
 pin "@hotwired/stimulus", to: "stimulus.min.js"
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 pin_all_from "app/javascript/controllers", under: "controllers"
+pin "three", to: "https://ga.jspm.io/npm:three@0.183.2/build/three.module.js"
+pin "three/addons/controls/OrbitControls", to: "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/controls/OrbitControls.js"
+pin "three/addons/loaders/PLYLoader", to: "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/loaders/PLYLoader.js"
+pin "@mkkellogg/gaussian-splats-3d", to: "https://ga.jspm.io/npm:@mkkellogg/gaussian-splats-3d@0.4.4/build/gaussian-splats-3d.module.js"
+pin "bootstrap", to: "https://ga.jspm.io/npm:bootstrap@5.3.8/dist/js/bootstrap.esm.js"
+pin "@popperjs/core", to: "https://ga.jspm.io/npm:@popperjs/core@2.11.8/lib/index.js"

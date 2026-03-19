@@ -1,0 +1,46 @@
+<div class="container mt-4 mb-5">
+  <h1 class="fw-bold mb-4" style="font-size: 3rem;">My Gallery</h1>
+
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    <% @entries.each do |entry| %>
+      <% entry.images.each_with_index do |image, index| %>
+        
+        <% splat = entry.splats[index] %>
+
+        <div class="col">
+          <div class="card h-100 shadow-sm border-0 bg-white" style="cursor: pointer;" 
+               data-bs-toggle="modal" 
+               data-bs-target="#splatModal-<%= image.id %>">
+            
+            <%= image_tag image, class: "card-img-top", style: "height: 250px; object-fit: cover; border-radius: 12px;" %>
+            
+            <div class="card-body text-center">
+              <span class="badge <%= splat ? 'bg-success' : 'bg-secondary' %> rounded-pill">
+                <%= splat ? 'Splt Ready' : 'Processing...' %>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <% if splat %>
+          <div class="modal fade" id="splatModal-<%= image.id %>" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+              <div class="modal-content bg-dark border-0">
+                <div class="modal-header border-0 pb-0">
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                  <div data-controller="splat-viewer" 
+                       data-splat-viewer-url-value="<%= url_for(splat) %>"
+                       style="width: 100%; height: 70vh;">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+      <% end %>
+    <% end %>
+  </div>
+</div>

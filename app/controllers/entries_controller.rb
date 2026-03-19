@@ -23,6 +23,12 @@ class EntriesController < ApplicationController
     @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_initialize
     
     if @entry.update(entry_params)
+      if @entry.images.attached?
+        @entry.images.each do |image|
+          GenerateSplatJob.perform_later(@entry.id, image.blob_id)
+        end
+      end
+      
       redirect_to entries_path, notice: "Journal saved successfully!"
     else
       render :new
