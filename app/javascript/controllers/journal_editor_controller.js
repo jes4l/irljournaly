@@ -10,6 +10,7 @@ export default class extends Controller {
     this.dragging = null
     this.offsetX = 0
     this.offsetY = 0
+    this.accumulatedFiles = new DataTransfer()
 
     this.canvasTarget.querySelectorAll('.canvas-content').forEach(el => {
       el.setAttribute('contenteditable', 'true')
@@ -70,30 +71,36 @@ export default class extends Controller {
   }
 
   handleImage(event) {
-    const file = event.target.files[0]
-    if (!file) return
+    const files = event.target.files
+    if (!files.length) return
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const img = new Image()
-      img.src = e.target.result
-      
-      img.onload = () => {
-        const wrapper = document.createElement("div")
-        wrapper.className = "canvas-element canvas-img-container"
-        wrapper.style.left = "50px"
-        wrapper.style.top = "150px"
+    Array.from(files).forEach(file => {
+      this.accumulatedFiles.items.add(file)
 
-        wrapper.innerHTML = `
-          <div class="drag-handle" data-action="mousedown->journal-editor#dragStart"><i class="bi bi-arrows-move"></i></div>
-          <div class="canvas-img-wrapper" style="aspect-ratio: ${img.naturalWidth} / ${img.naturalHeight}; width: 250px; height: auto;">
-            <img src="${e.target.result}" draggable="false">
-          </div>
-        `
-        this.canvasTarget.appendChild(wrapper)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.src = e.target.result
+        
+        img.onload = () => {
+          const wrapper = document.createElement("div")
+          wrapper.className = "canvas-element canvas-img-container"
+          wrapper.style.left = "50px"
+          wrapper.style.top = "150px"
+
+          wrapper.innerHTML = `
+            <div class="drag-handle" data-action="mousedown->journal-editor#dragStart"><i class="bi bi-arrows-move"></i></div>
+            <div class="canvas-img-wrapper" style="aspect-ratio: ${img.naturalWidth} / ${img.naturalHeight}; width: 250px; height: auto;">
+              <img src="${e.target.result}" draggable="false">
+            </div>
+          `
+          this.canvasTarget.appendChild(wrapper)
+        }
       }
-    }
-    reader.readAsDataURL(file)
+      reader.readAsDataURL(file)
+    })
+
+    this.imageInputTarget.files = this.accumulatedFiles.files
   }
 
   format(event) {

@@ -1,9 +1,18 @@
 <div class="container-fluid mt-4">
   <div class="d-flex justify-content-between mb-3 px-5">
     <%= link_to "< Back to Calendar", entries_path, class: "btn btn-outline-dark fw-bold rounded-pill" %>
-    <% if @entry.created_at.to_date == Date.today %>
-      <%= link_to "Edit Today's Journal", new_entry_path, class: "btn btn-dark fw-bold rounded-pill" %>
-    <% end %>
+    
+    <div class="d-flex gap-2">
+      <% if @entry.splats.attached? %>
+        <button class="btn btn-primary fw-bold rounded-pill shadow" onclick="document.getElementById('splat-overlay').classList.add('active')">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Step into Journal
+        </button>
+      <% end %>
+
+      <% if @entry.created_at.to_date == Date.today %>
+        <%= link_to "Edit Today's Journal", new_entry_path, class: "btn btn-dark fw-bold rounded-pill" %>
+      <% end %>
+    </div>
   </div>
 
   <div class="journal-container">
@@ -21,3 +30,18 @@
     </div>
   </div>
 </div>
+
+<%# %>
+<% if @entry.splats.attached? %>
+  <div id="splat-overlay" class="splat-overlay">
+    <button class="btn-close-splat" onclick="document.getElementById('splat-overlay').classList.remove('active')">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    
+    <%# %>
+    <div data-controller="splat-viewer" 
+         data-splat-viewer-urls-value='<%= @entry.splats.map { |s| url_for(s) }.to_json %>'
+         class="splat-container">
+    </div>
+  </div>
+<% end %>
