@@ -12,7 +12,6 @@ echo "Starting Solid Queue (Background Jobs)..."
 bin/jobs &
 
 echo "Starting Cloudflare Tunnel..."
-
 cloudflared tunnel run mac-host &
 
 wait
