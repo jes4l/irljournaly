@@ -35,7 +35,7 @@
   </div>
 </div>
 <% if @entry.splats.attached? && @entry.images.count == @entry.splats.count %>
-  <div id="splat-overlay" class="splat-overlay" data-controller="splat-viewer" data-splat-viewer-urls-value="<%= @entry.splats.map { |s| url_for(s) }.to_json %>">
+  <div id="splat-overlay" class="splat-overlay" data-controller="splat-viewer" data-splat-viewer-urls-value="<%= @entry.splats.map { |s| rails_blob_path(s, only_path: true) }.to_json %>">
     <button class="btn-close-splat" onclick="document.getElementById('splat-overlay').classList.remove('active')">
       <i class="bi bi-x-lg"></i>
     </button>

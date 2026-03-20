@@ -41,7 +41,7 @@ class EntriesController < ApplicationController
       
       render json: { 
         success: true, 
-        image_url: url_for(latest_blob), 
+        image_url: rails_blob_path(latest_blob, only_path: true), 
         image_id: @entry.images.last.id 
       }
     else

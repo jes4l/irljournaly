@@ -44,7 +44,7 @@ export default class extends Controller {
         'scale': [1, 1, 1]
       }).then(() => {
         viewer.start()
-        this.frameViewer(viewer, index)
+        this.frameViewer(viewer, index, slide)
       }).catch((error) => {
         console.error(error)
       })
@@ -53,7 +53,7 @@ export default class extends Controller {
     })
   }
 
-  frameViewer(viewer, index) {
+  frameViewer(viewer, index, slide) {
     if (!viewer.splatMesh) return
     let box = new THREE.Box3()
     if (typeof viewer.splatMesh.getBoundingBox === 'function') {
@@ -73,13 +73,60 @@ export default class extends Controller {
     viewer.camera.updateProjectionMatrix()
     
     if (viewer.cameraControls) {
-      const lookDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(viewer.camera.quaternion)
-      const farTarget = viewer.camera.position.clone().addScaledVector(lookDirection, 100000)
-      
-      viewer.cameraControls.target.copy(farTarget)
-      viewer.cameraControls.minDistance = 0.00001
-      viewer.cameraControls.maxDistance = 100000
+      viewer.cameraControls.target.copy(center)
+      viewer.cameraControls.enableZoom = false
+      slide.addEventListener('wheel', (event) => {
+        event.preventDefault()
+        
+        const zoomSpeed = 0.005 
+        const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(viewer.camera.quaternion)
+        const moveAmount = event.deltaY * zoomSpeed
+
+        viewer.camera.position.addScaledVector(direction, -moveAmount)
+        viewer.cameraControls.target.addScaledVector(direction, -moveAmount)
+        viewer.cameraControls.update()
+      }, { passive: false })
+
+      let initialPinchDistance = null;
+
+      slide.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 2) {
+          const dx = event.touches[0].pageX - event.touches[1].pageX;
+          const dy = event.touches[0].pageY - event.touches[1].pageY;
+          initialPinchDistance = Math.hypot(dx, dy);
+        }
+      }, { passive: false });
+
+      slide.addEventListener('touchmove', (event) => {
+        if (event.touches.length === 2) {
+          event.preventDefault();
+
+          const dx = event.touches[0].pageX - event.touches[1].pageX;
+          const dy = event.touches[0].pageY - event.touches[1].pageY;
+          const currentPinchDistance = Math.hypot(dx, dy);
+
+          if (initialPinchDistance) {
+            const pinchDelta = initialPinchDistance - currentPinchDistance;
+            const pinchSpeed = 0.02; 
+            const moveAmount = pinchDelta * pinchSpeed;
+
+            const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(viewer.camera.quaternion);
+            viewer.camera.position.addScaledVector(direction, -moveAmount);
+            viewer.cameraControls.target.addScaledVector(direction, -moveAmount);
+            viewer.cameraControls.update();
+          }
+
+          initialPinchDistance = currentPinchDistance;
+        }
+      }, { passive: false });
+
+      slide.addEventListener('touchend', (event) => {
+        if (event.touches.length < 2) {
+          initialPinchDistance = null;
+        }
+      }, { passive: false });
     }
+
     this.initialCameraStates[index] = {
       position: viewer.camera.position.clone(),
       target: viewer.cameraControls ? viewer.cameraControls.target.clone() : center.clone()
