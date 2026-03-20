@@ -35,7 +35,7 @@ export default class extends Controller {
       const viewer = new GaussianSplats3D.Viewer({
         'rootElement': slide,
         'cameraUp': [0, 1, 0],
-        'sharedMemoryForWorkers': false
+        'sharedMemoryForWorkers': true
       })
 
       viewer.addSplatScene(url, {
