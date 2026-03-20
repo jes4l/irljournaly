@@ -13,6 +13,6 @@ bin/jobs &
 
 echo "Starting Cloudflare Tunnel..."
 
-cloudflared tunnel run --url http://localhost:3000 mac-host &
+cloudflared tunnel run mac-host &
 
 wait
