@@ -1,27 +1,25 @@
 <% if user_signed_in? %>
-  <nav class="navbar navbar-expand-lg navbar-light border-bottom border-dark" style="background-color: #efe2d0;">
-    <div class="container-fluid px-4">
-      <%= link_to "IRL Journaly", root_path, class: "navbar-brand fw-bold fs-2" %>
+  <nav class="navbar navbar-expand-lg navbar-light border-bottom border-dark py-2" style="background-color: #efe2d0;">
+    <div class="container-fluid px-3 px-md-4">
+      <%= link_to "IRL Journaly", root_path, class: "navbar-brand fw-bold fs-3 fs-md-2" %>
       
-      <button class="navbar-toggler border-dark" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <button class="navbar-toggler border-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fs-3 gap-4">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 fs-4 gap-2 gap-md-4 text-center mt-3 mt-lg-0">
           <li class="nav-item">
             <%= link_to "Write", new_entry_path, class: "nav-link text-dark fw-bold" %>
           </li>
           <li class="nav-item">
-            <%= link_to "Calendar", entries_path, class: "nav-link text-dark fw-bold" %>
+            <%= link_to "My Journals", entries_path, class: "nav-link text-dark fw-bold" %>
           </li>
         </ul>
         
-        <div class="d-flex align-items-center gap-3">
-          <%= link_to edit_user_registration_path, class: "text-dark text-decoration-none fs-4" do %>
-            Profile
-          <% end %>
-          <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-dark fs-5 rounded-pill px-3" %>
+        <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mt-3 mt-lg-0 pb-3 pb-lg-0">
+          <%= link_to "Profile", edit_user_registration_path, class: "nav-link text-dark text-decoration-none fs-5 fw-bold" %>
+          <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-outline-dark fw-bold rounded-pill px-4 w-100 w-lg-auto" %>
         </div>
       </div>
     </div>

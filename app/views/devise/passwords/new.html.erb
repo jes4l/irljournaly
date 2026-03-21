@@ -1,0 +1,27 @@
+<div class="container-fluid vh-100 d-flex align-items-center">
+  <div class="row w-100">
+    <div class="col-md-6 d-flex justify-content-center align-items-center mb-4 mb-md-0">
+      <h1 class="brand-huge text-center text-md-start" tabindex="0">
+        IRL<br>Journaly
+      </h1>
+    </div>
+
+    <div class="col-md-6 d-flex flex-column justify-content-center align-items-center" style="min-height: 400px;">
+      <div class="w-100 w-md-75 px-3">
+        <%= link_to "< Back", new_session_path(resource_name), class: "btn btn-link text-dark text-decoration-none mb-3 fs-4" %>
+        <h2 class="fw-bold mb-4 text-center fs-2" tabindex="0">Reset Password</h2>
+        
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, data: { turbo: false } }) do |f| %>
+          <div class="mb-4">
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control form-control-lg hand-input border-dark", placeholder: "Email" %>
+          </div>
+          <div class="d-grid">
+            <%= f.submit "Send reset link", class: "btn btn-dark btn-lg rounded-pill fs-3" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

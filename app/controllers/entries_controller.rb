@@ -1,5 +1,7 @@
 class EntriesController < ApplicationController
   before_action :authenticate_user!
+  
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   def index
     @current_date = params[:date] ? Date.parse(params[:date]) : Date.today
@@ -32,17 +34,22 @@ class EntriesController < ApplicationController
   def upload_image
     @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_create!(name: "Journal #{Date.today}")
     
-    image = params[:image]
-    if image
-      @entry.images.attach(image)
-      latest_blob = @entry.images.last.blob
+    if params[:image]
+      blob = ActiveStorage::Blob.create_and_upload!(
+        io: params[:image].open,
+        filename: params[:image].original_filename,
+        content_type: params[:image].content_type
+      )
       
-      GenerateSplatJob.perform_later(@entry.id, latest_blob.id)
+      @entry.images.attach(blob)
+      attachment = @entry.images.attachments.find_by(blob_id: blob.id)
+      
+      GenerateSplatJob.perform_later(attachment.id)
       
       render json: { 
         success: true, 
-        image_url: rails_blob_path(latest_blob, only_path: true), 
-        image_id: @entry.images.last.id 
+        image_url: rails_blob_path(blob, only_path: true), 
+        image_id: attachment.id 
       }
     else
       render json: { success: false }, status: :unprocessable_entity
@@ -50,14 +57,16 @@ class EntriesController < ApplicationController
   end
 
   def delete_image
-    image = ActiveStorage::Attachment.find_by(id: params[:image_id])
+    image_attachment = ActiveStorage::Attachment.find_by(id: params[:image_id])
     
-    if image
-      filename = image.blob.filename.to_s
+    if image_attachment
+      filename = image_attachment.blob.filename.to_s
       system("pkill -f '#{filename}'")
-      splat = image.record.splats.find { |s| s.filename.to_s.start_with?(image.filename.base) }
+      
+      splat = image_attachment.record.splats.attachments.find { |s| s.filename.to_s == "#{image_attachment.id}.ply" }
       splat&.purge
-      image.purge
+      
+      image_attachment.purge
     end
     
     render json: { success: true }
@@ -70,6 +79,10 @@ class EntriesController < ApplicationController
   end
 
   private
+
+  def record_not_found
+    redirect_to entries_path, alert: "Journal entry not found. It may have been deleted or doesn't exist yet."
+  end
 
   def entry_params
     params.require(:entry).permit(:name, :link, :content)

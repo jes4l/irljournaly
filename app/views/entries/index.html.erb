@@ -6,20 +6,20 @@
 
 <div class="container mt-4 mb-5" style="max-width: 800px;">
   
-  <div class="d-flex justify-content-center align-items-center mb-4 gap-4">
-    <%= link_to "<", entries_path(date: @current_date.prev_month), class: "text-dark text-decoration-none fs-1 fw-bold hover-scale" %>
-    <h1 style="font-size: 4rem; font-weight: bold; margin: 0;"><%= @current_date.strftime("%B %Y") %></h1>
-    <%= link_to ">", entries_path(date: @current_date.next_month), class: "text-dark text-decoration-none fs-1 fw-bold hover-scale" %>
+  <div class="d-flex justify-content-center align-items-center mb-4 gap-3 gap-md-4">
+    <%= link_to "<", entries_path(date: @current_date.prev_month), class: "text-dark text-decoration-none fs-2 fs-md-1 fw-bold hover-scale", aria: { label: "Previous month" } %>
+    <h1 class="text-center fw-bold m-0" style="font-size: clamp(2rem, 6vw, 4rem);" tabindex="0" aria-label="<%= @current_date.strftime("%B %Y") %>"><%= @current_date.strftime("%B %Y") %></h1>
+    <%= link_to ">", entries_path(date: @current_date.next_month), class: "text-dark text-decoration-none fs-2 fs-md-1 fw-bold hover-scale", aria: { label: "Next month" } %>
   </div>
   
-  <div class="row text-center calendar-header mb-2 mx-1 border-0">
-    <div class="col">Sun</div>
-    <div class="col">Mon</div>
-    <div class="col">Tue</div>
-    <div class="col">Wed</div>
-    <div class="col">Thu</div>
-    <div class="col">Fri</div>
-    <div class="col">Sat</div>
+  <div class="row text-center calendar-header mb-2 mx-1 border-0 fs-6 fs-md-4">
+    <div class="col p-1" tabindex="0" aria-label="Sunday"><span class="d-none d-md-inline">Sun</span><span class="d-inline d-md-none">S</span></div>
+    <div class="col p-1" tabindex="0" aria-label="Monday"><span class="d-none d-md-inline">Mon</span><span class="d-inline d-md-none">M</span></div>
+    <div class="col p-1" tabindex="0" aria-label="Tuesday"><span class="d-none d-md-inline">Tue</span><span class="d-inline d-md-none">T</span></div>
+    <div class="col p-1" tabindex="0" aria-label="Wednesday"><span class="d-none d-md-inline">Wed</span><span class="d-inline d-md-none">W</span></div>
+    <div class="col p-1" tabindex="0" aria-label="Thursday"><span class="d-none d-md-inline">Thu</span><span class="d-inline d-md-none">T</span></div>
+    <div class="col p-1" tabindex="0" aria-label="Friday"><span class="d-none d-md-inline">Fri</span><span class="d-inline d-md-none">F</span></div>
+    <div class="col p-1" tabindex="0" aria-label="Saturday"><span class="d-none d-md-inline">Sat</span><span class="d-inline d-md-none">S</span></div>
   </div>
   
   <% date_range.each_slice(7) do |week| %>
@@ -30,19 +30,25 @@
             <% entry = @entries_by_date[day] %>
             
             <% if entry %>
-              <%= link_to entry_path(entry), class: "text-decoration-none text-white" do %>
+              <%= link_to entry_path(entry), class: "text-decoration-none text-white d-block", aria: { label: "View journal entry for #{day.strftime('%B %d, %Y')}" } do %>
                 <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-success shadow-sm border border-dark hover-scale">
-                  <span class="fw-bold fs-2"><%= day.day %></span>
+                  <span class="fw-bold fs-4 fs-md-2"><%= day.day %></span>
+                </div>
+              <% end %>
+            <% elsif day == Date.today %>
+              <%= link_to new_entry_path, class: "text-decoration-none text-dark d-block", aria: { label: "Create journal entry for today" } do %>
+                <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-white shadow-sm border border-primary border-2 hover-scale">
+                  <span class="fw-bold fs-4 fs-md-2 text-primary"><%= day.day %></span>
                 </div>
               <% end %>
             <% else %>
-              <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-white shadow-sm border border-dark">
-                <span class="fw-bold fs-2 text-dark"><%= day.day %></span>
+              <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-white shadow-sm border border-dark" tabindex="0" aria-label="No journal entry for <%= day.strftime('%B %d, %Y') %>">
+                <span class="fw-bold fs-4 fs-md-2 text-dark"><%= day.day %></span>
               </div>
             <% end %>
             
           <% else %>
-            <div class="calendar-day-empty"></div>
+            <div class="calendar-day-empty" tabindex="0" aria-label="Empty calendar padding"></div>
           <% end %>
         </div>
       <% end %>

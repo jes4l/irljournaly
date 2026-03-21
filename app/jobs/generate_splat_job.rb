@@ -4,11 +4,12 @@ require 'fileutils'
 class GenerateSplatJob < ApplicationJob
   queue_as :default
 
-  def perform(entry_id, image_blob_id)
-    entry = Entry.find_by(id: entry_id)
-    image = ActiveStorage::Blob.find_by(id: image_blob_id)
+  def perform(attachment_id)
+    attachment = ActiveStorage::Attachment.find_by(id: attachment_id)
+    return unless attachment
 
-    return unless entry && image
+    entry = attachment.record
+    image_blob = attachment.blob
 
     Dir.mktmpdir do |tmp_dir|
       input_dir = File.join(tmp_dir, 'input_images')
@@ -16,8 +17,8 @@ class GenerateSplatJob < ApplicationJob
       FileUtils.mkdir_p(input_dir)
       FileUtils.mkdir_p(output_dir)
 
-      input_file_path = File.join(input_dir, image.filename.to_s)
-      File.binwrite(input_file_path, image.download)
+      input_file_path = File.join(input_dir, image_blob.filename.to_s)
+      File.binwrite(input_file_path, image_blob.download)
 
       ml_sharp_path = "/Users/jesal.vadgama/Desktop/ml-sharp"
       command = "bash -c 'cd #{ml_sharp_path} && source venv/bin/activate && sharp predict -i #{input_dir} -o #{output_dir}'"
@@ -26,14 +27,14 @@ class GenerateSplatJob < ApplicationJob
 
       ply_file = Dir.glob(File.join(output_dir, "*.ply")).first
 
-      if ply_file && entry.reload && ActiveStorage::Blob.exists?(image.id)
+      if ply_file && entry.reload && ActiveStorage::Attachment.exists?(id: attachment.id)
         entry.splats.attach(
           io: File.open(ply_file),
-          filename: "#{image.filename.base}.ply",
+          filename: "#{attachment.id}.ply",
           content_type: 'application/octet-stream'
         )
       else
-        Rails.logger.error("ML Sharp failed or image was deleted for #{image.filename}")
+        Rails.logger.error("ML Sharp failed or image was deleted for #{image_blob.filename}")
       end
     end
   end

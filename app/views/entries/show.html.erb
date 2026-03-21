@@ -1,32 +1,43 @@
-<% if @entry.images.count > @entry.splats.count %>
+<% 
+  active_image_ids = @entry.content.to_s.scan(/data-image-id=["']?(\d+)["']?/).flatten.map(&:to_i)
+  valid_images = @entry.images.select { |img| active_image_ids.include?(img.id) }
+  
+  valid_splats = @entry.splats.select do |splat|
+    valid_images.any? { |img| splat.filename.to_s == "#{img.id}.ply" }
+  end
+
+  remaining_splats = [0, valid_images.count - valid_splats.count].max
+%>
+
+<% if remaining_splats > 0 %>
   <meta http-equiv="refresh" content="3">
 <% end %>
 <div class="container-fluid mt-4">
-  <div class="d-flex justify-content-between mb-3 px-5">
-    <%= link_to "< Back to Calendar", entries_path, class: "btn btn-outline-dark fw-bold rounded-pill" %>
-    <div class="d-flex gap-2">
-      <% if @entry.images.attached? %>
-        <% if @entry.images.count == @entry.splats.count %>
-          <button class="btn btn-primary fw-bold rounded-pill shadow" onclick="document.getElementById('splat-overlay').classList.add('active')">
+  <div class="d-flex flex-column flex-md-row justify-content-between mb-3 px-2 px-md-5 gap-2">
+    <%= link_to "< Back to Calendar", entries_path, class: "btn btn-outline-dark fw-bold rounded-3" %>
+    <div class="d-flex flex-column flex-md-row gap-2">
+      <% if valid_images.any? %>
+        <% if remaining_splats == 0 %>
+          <button class="btn btn-primary fw-bold rounded-3 shadow" onclick="document.getElementById('splat-overlay').classList.add('active')">
             <i class="bi bi-box-arrow-in-right me-1"></i> Step into Journal
           </button>
         <% else %>
-          <button class="btn btn-secondary fw-bold rounded-pill shadow" disabled>
+          <button class="btn btn-secondary fw-bold rounded-3 shadow" disabled>
             <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            Generating (<%= @entry.images.count - @entry.splats.count %> remaining)...
+            Generating (<%= remaining_splats %> remaining)...
           </button>
         <% end %>
       <% end %>
       <% if @entry.created_at.to_date == Date.today %>
-        <%= link_to "Edit Today's Journal", new_entry_path, class: "btn btn-dark fw-bold rounded-pill" %>
+        <%= link_to "Edit Today's Journal", new_entry_path, class: "btn btn-dark fw-bold rounded-3" %>
       <% end %>
     </div>
   </div>
   <div class="journal-container">
     <div class="journal-book read-only-book">
-      <div class="position-absolute top-0 start-0 m-4 p-3 border border-dark rounded bg-white shadow-sm text-center z-3" style="font-family: 'Patrick Hand', cursive; line-height: 1;">
-        <div style="font-size: 3.5rem; font-weight: bold;"><%= @entry.created_at.strftime("%d") %></div>
-        <div style="font-size: 1.5rem;"><%= @entry.created_at.strftime("%B '%y") %></div>
+      <div class="position-absolute top-0 start-0 m-2 m-md-4 p-2 p-md-3 border border-dark rounded bg-white shadow-sm text-center z-3" style="font-family: 'Patrick Hand', cursive; line-height: 1;">
+        <div class="fw-bold" style="font-size: clamp(2rem, 5vw, 3.5rem);"><%= @entry.created_at.strftime("%d") %></div>
+        <div style="font-size: clamp(1rem, 3vw, 1.5rem);"><%= @entry.created_at.strftime("%B '%y") %></div>
       </div>
       <div class="journal-page w-100 h-100 position-absolute top-0 start-0">
         <%== @entry.content %>
@@ -34,19 +45,19 @@
     </div>
   </div>
 </div>
-<% if @entry.splats.attached? && @entry.images.count == @entry.splats.count %>
-  <div id="splat-overlay" class="splat-overlay" data-controller="splat-viewer" data-splat-viewer-urls-value="<%= @entry.splats.map { |s| rails_blob_path(s, only_path: true) }.to_json %>">
-    <button class="btn-close-splat" onclick="document.getElementById('splat-overlay').classList.remove('active')">
+<% if valid_splats.any? && remaining_splats == 0 %>
+  <div id="splat-overlay" class="splat-overlay" data-controller="splat-viewer" data-splat-viewer-urls-value="<%= valid_splats.map { |s| rails_blob_path(s, only_path: true) }.to_json %>">
+    <button class="btn-close-splat" onclick="document.getElementById('splat-overlay').classList.remove('active')" aria-label="Close Splat Viewer">
       <i class="bi bi-x-lg"></i>
     </button>
-    <button class="btn-reset-splat" data-action="click->splat-viewer#resetCamera">
+    <button class="btn-reset-splat" data-action="click->splat-viewer#resetCamera" aria-label="Reset Camera">
       <i class="bi bi-arrow-counterclockwise"></i>
     </button>
-    <% if @entry.splats.count > 1 %>
-      <button class="btn-nav-splat btn-prev" data-action="click->splat-viewer#prev" data-splat-viewer-target="prevBtn" style="display: none;">
+    <% if valid_splats.count > 1 %>
+      <button class="btn-nav-splat btn-prev" data-action="click->splat-viewer#prev" data-splat-viewer-target="prevBtn" style="display: none;" aria-label="Previous Splat">
         <i class="bi bi-chevron-left"></i>
       </button>
-      <button class="btn-nav-splat btn-next" data-action="click->splat-viewer#next" data-splat-viewer-target="nextBtn">
+      <button class="btn-nav-splat btn-next" data-action="click->splat-viewer#next" data-splat-viewer-target="nextBtn" aria-label="Next Splat">
         <i class="bi bi-chevron-right"></i>
       </button>
     <% end %>

@@ -4,46 +4,92 @@ body {
   font-family: 'Patrick Hand', cursive;
 }
 
+*:focus-visible {
+  outline: 3px solid #0d6efd !important;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input[type="range"].form-range::-webkit-slider-thumb {
+  background-color: #212529 !important;
+}
+input[type="range"].form-range::-moz-range-thumb {
+  background-color: #212529 !important;
+}
+
 .bg-calendar {
   background-color: #efe2d0;
   color: black;
 }
 
 .brand-huge {
-  font-size: 8rem;
+  font-size: 4rem;
   line-height: 1.1;
   font-weight: bold;
+  @media (min-width: 768px) {
+    font-size: 8rem;
+  }
 }
 
 .hand-input {
   font-family: 'Patrick Hand', cursive;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+  @media (min-width: 768px) {
+    font-size: 1.5rem;
+  }
+}
+
+.nav-link {
+  position: relative;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  
+  &:hover, &:focus-visible {
+    transform: scale(1.05);
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 3px;
+    bottom: 0;
+    left: 50%;
+    background-color: #212529;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
+  
+  &:hover::after, &:focus-visible::after {
+    width: 80%;
+  }
+}
+
+.calendar-day, .calendar-day-empty {
+  height: 55px;
+  @media (min-width: 768px) {
+    height: 80px;
+  }
 }
 
 .calendar-day {
-  height: 80px;
   transition: all 0.2s;
-  
-  &:hover {
+  &:hover, &:focus-visible {
     background-color: #e6d5bd !important;
     cursor: pointer;
   }
 }
 
-.calendar-day-empty {
-  height: 80px;
-}
-
 .calendar-header {
-  font-size: 1.8rem;
   font-weight: bold;
   border-bottom: none !important;
 }
 
 .hover-scale {
   transition: transform 0.2s;
-  &:hover {
-    transform: scale(1.3);
+  &:hover, &:focus-visible {
+    transform: scale(1.1);
   }
 }
 
@@ -70,22 +116,29 @@ body {
   flex: 1;
   background-image: linear-gradient(#e5e5e5 1px, transparent 1px);
   background-size: 100% 2.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .journal-toolbar {
   position: absolute;
-  bottom: 20px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: fit-content;
-  background: rgba(245, 245, 245, 0.95);
+  width: 95%;
+  max-width: 700px;
+  background: rgba(245, 245, 245, 0.98);
   border: 1px solid #ddd;
-  padding: 10px 20px;
-  border-radius: 50px;
+  padding: 10px;
+  border-radius: 15px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 10px;
   z-index: 20;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .canvas-element {
@@ -93,42 +146,106 @@ body {
   z-index: 5;
 }
 
+.canvas-element.canvas-img-container {
+  border: 2px dashed transparent;
+  padding: 0;
+}
+
+.canvas-element.canvas-img-container:hover, 
+.canvas-element.canvas-img-container:focus-within {
+  border-color: #666;
+}
+
+.read-only-book .canvas-element.canvas-img-container {
+  border-color: transparent !important;
+}
+
 .drag-handle {
-  height: 20px;
-  background: rgba(0,0,0,0.1);
-  color: #555;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 35px;
+  height: 35px;
+  background: rgba(0,0,0,0.15);
+  color: #333;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 4px 4px 0 0;
+  border-radius: 50%;
   cursor: grab;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s;
+  z-index: 10;
+  @media (min-width: 768px) {
+    opacity: 0;
+    width: 25px;
+    height: 25px;
+    top: -2px;
+    left: -2px;
+  }
 }
 
 .drag-handle:active {
   cursor: grabbing;
 }
 
-.canvas-element:hover .drag-handle {
+.resize-handle {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 35px;
+  height: 35px;
+  background: rgba(0,0,0,0.15);
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  cursor: se-resize;
+  opacity: 1;
+  transition: opacity 0.2s;
+  z-index: 10;
+  @media (min-width: 768px) {
+    opacity: 0;
+    width: 25px;
+    height: 25px;
+    bottom: -2px;
+    right: -2px;
+  }
+}
+
+.canvas-element:hover .drag-handle, .canvas-element:active .drag-handle,
+.canvas-element:focus-within .drag-handle {
+  opacity: 1;
+}
+
+.canvas-element:hover .resize-handle, .canvas-element:active .resize-handle,
+.canvas-element:focus-within .resize-handle {
   opacity: 1;
 }
 
 .canvas-content {
-  min-width: 150px;
+  min-width: 100%;
   min-height: 50px;
   padding: 5px;
   font-family: 'Patrick Hand', cursive;
   font-size: 24px;
   outline: none;
-  border: 1px dashed transparent;
-  resize: both;
+  border: 1px dashed #ccc;
   overflow: hidden;
+  background: rgba(255,255,255,0.2);
+  
+  &:empty:before {
+    content: attr(data-placeholder);
+    color: #888;
+    pointer-events: none;
+    display: block;
+  }
 }
 
 .canvas-content:focus {
-  border-color: #aaa;
-  background: rgba(255,255,255,0.5);
+  border-color: #666;
+  background: rgba(255,255,255,0.8);
 }
 
 .canvas-img-container {
@@ -136,24 +253,7 @@ body {
   flex-direction: column;
 }
 
-.canvas-img-wrapper {
-  resize: horizontal; 
-  overflow: hidden;
-  border: 2px dashed transparent;
-  min-width: 50px;
-}
-
-.canvas-element:hover .canvas-img-wrapper {
-  border-color: #aaa;
-}
-
-.canvas-img-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.read-only-book .drag-handle {
+.read-only-book .drag-handle, .read-only-book .resize-handle {
   display: none !important;
 }
 
@@ -163,9 +263,8 @@ body {
   resize: none !important;
 }
 
-.read-only-book .canvas-img-wrapper {
-  border-color: transparent !important;
-  resize: none !important;
+.read-only-book .journal-page {
+  padding-bottom: 20px;
 }
 
 .splat-overlay {
@@ -186,97 +285,47 @@ body {
     visibility: visible;
   }
 
+  .btn-close-splat, .btn-reset-splat, .btn-nav-splat {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    border-radius: 50%;
+
+    &:hover, &:focus-visible { 
+      background: rgba(255, 255, 255, 0.4); 
+    }
+  }
+
   .btn-close-splat {
     position: absolute;
-    top: 30px;
-    right: 30px;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    z-index: 10;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-  }
-
-  .btn-nav-splat {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 2rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    z-index: 10;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-
-    &.btn-prev { left: 30px; }
-    &.btn-next { right: 30px; }
-  }
-
-  .splat-slider-viewport {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .splat-slider-track {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
-  }
-
-  .splat-slide {
-    flex: 0 0 100vw;
-    width: 100vw;
-    height: 100vh;
-    position: relative;
+    top: 15px; right: 15px;
+    width: 40px; height: 40px; font-size: 1.2rem;
+    @media (min-width: 768px) { top: 30px; right: 30px; width: 50px; height: 50px; font-size: 1.5rem; }
   }
 
   .btn-reset-splat {
     position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    z-index: 10;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
+    bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 45px; height: 45px; font-size: 1.2rem;
+    @media (min-width: 768px) { bottom: 30px; width: 50px; height: 50px; font-size: 1.5rem; }
   }
 
+  .btn-nav-splat {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 45px; height: 45px; font-size: 1.5rem;
+    &.btn-prev { left: 15px; @media (min-width: 768px) { left: 30px; } }
+    &.btn-next { right: 15px; @media (min-width: 768px) { right: 30px; } }
+    @media (min-width: 768px) { width: 60px; height: 60px; font-size: 2rem; }
+  }
+
+  .splat-slider-viewport { width: 100%; height: 100%; overflow: hidden; }
+  .splat-slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+  .splat-slide { flex: 0 0 100vw; width: 100vw; height: 100vh; position: relative; }
 }
