@@ -34,6 +34,12 @@ class EntriesController < ApplicationController
   def upload_image
     @entry = current_user.entries.where(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).first_or_create!(name: "Journal #{Date.today}")
     
+    pending_count = @entry.images.count - @entry.splats.count
+    if pending_count >= 5
+      render json: { success: false, error: "You can only process a maximum of 5 images at a time. Please wait for the current ones to finish processing." }, status: :too_many_requests
+      return
+    end
+
     if params[:image]
       blob = ActiveStorage::Blob.create_and_upload!(
         io: params[:image].open,
@@ -66,6 +72,9 @@ class EntriesController < ApplicationController
       splat = image_attachment.record.splats.attachments.find { |s| s.filename.to_s == "#{image_attachment.id}.ply" }
       splat&.purge
       
+      failed_splat = image_attachment.record.splats.attachments.find { |s| s.filename.to_s == "#{image_attachment.id}.failed" }
+      failed_splat&.purge
+
       image_attachment.purge
     end
     

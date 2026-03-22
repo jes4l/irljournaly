@@ -11,6 +11,7 @@ export default class extends Controller {
     this.resizingElement = null
     this.offsetX = 0
     this.offsetY = 0
+    this.isUploading = false 
 
     this.canvasTarget.querySelectorAll('.canvas-content').forEach(el => {
       el.setAttribute('contenteditable', 'true')
@@ -21,8 +22,8 @@ export default class extends Controller {
     })
 
     this.canvasTarget.querySelectorAll('.canvas-element').forEach(el => {
-      if (!el.querySelector('.btn-danger')) {
-        el.insertAdjacentHTML('beforeend', '<button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>')
+      if (!el.querySelector('.delete-btn-overlay')) {
+        el.insertAdjacentHTML('beforeend', '<button class="btn btn-sm position-absolute top-0 end-0 m-1 delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>')
       }
       if (!el.querySelector('.resize-handle')) {
         el.insertAdjacentHTML('beforeend', '<div class="resize-handle" data-action="mousedown->journal-editor#resizeStart touchstart->journal-editor#resizeStart" aria-label="Resize element" tabindex="0"><i class="bi bi-arrows-angle-expand"></i></div>')
@@ -70,7 +71,7 @@ export default class extends Controller {
     wrapper.style.width = "40%"
     wrapper.innerHTML = `
       <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
-      <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
+      <button class="btn btn-sm position-absolute top-0 end-0 m-1 delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
       <div class="canvas-content" contenteditable="true" data-placeholder="Type here..." aria-label="Text entry" tabindex="0" style="width: 100%; min-height: 50px;"></div>
       <div class="resize-handle" data-action="mousedown->journal-editor#resizeStart touchstart->journal-editor#resizeStart" aria-label="Resize element" tabindex="0"><i class="bi bi-arrows-angle-expand"></i></div>
     `
@@ -78,52 +79,125 @@ export default class extends Controller {
   }
 
   triggerImage() {
+    if (this.isUploading) {
+      alert("Please wait for the current images to finish uploading before adding more.");
+      return;
+    }
     this.imageInputTarget.click()
   }
 
+  async convertToSupportedFormat(file) {
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (supportedTypes.includes(file.type)) return file;
+    
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(url);
+          const newName = file.name.replace(/\.[^/.]+$/, "") + ".png";
+          const newFile = new File([blob], newName, { type: 'image/png' });
+          resolve(newFile);
+        }, 'image/png', 1.0);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file); 
+      };
+      img.src = url;
+    });
+  }
+
   async handleImage(event) {
-    const files = event.target.files
-    if (!files.length) return
-    Array.from(files).forEach(async (file) => {
-      const wrapper = document.createElement("div")
-      wrapper.className = "canvas-element canvas-img-container"
-      wrapper.style.left = "5%"
-      wrapper.style.top = "10%"
-      wrapper.style.width = "40%"
-      wrapper.innerHTML = `
-        <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
-        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 d-none" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
-        <div class="spinner-border text-dark m-4" role="status"></div>
-      `
-      this.canvasTarget.appendChild(wrapper)
-      const formData = new FormData()
-      formData.append("image", file)
-      try {
-        const response = await fetch("/entries/upload_image", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-            "Accept": "application/json"
-          }
-        })
-        const data = await response.json()
-        if (data.success) {
-          wrapper.dataset.imageId = data.image_id
-          wrapper.innerHTML = `
-            <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
-            <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
-            <img src="${data.image_url}" draggable="false" alt="Journal image" style="width: 100%; height: auto; display: block;">
-            <div class="resize-handle" data-action="mousedown->journal-editor#resizeStart touchstart->journal-editor#resizeStart" aria-label="Resize element" tabindex="0"><i class="bi bi-arrows-angle-expand"></i></div>
-          `
-        } else {
-          wrapper.remove()
-        }
-      } catch (e) {
-        wrapper.remove()
+    const files = Array.from(event.target.files).filter(f => !f.type.startsWith('video/'));
+    event.target.value = ""; 
+    
+    if (!files.length) return;
+
+    if (files.length > 5) {
+      alert("You can only upload a maximum of 5 images at a time.");
+      return;
+    }
+
+    if (this.isUploading) {
+      alert("Please wait for the current images to finish uploading before adding more.");
+      return;
+    }
+
+    this.isUploading = true; 
+
+    try {
+      for (const originalFile of files) {
+        const file = await this.convertToSupportedFormat(originalFile);
+        const success = await this.uploadSingleImage(file);
+        if (!success) break; 
       }
-    })
-    event.target.value = ""
+    } finally {
+      this.isUploading = false;
+    }
+  }
+
+  async uploadSingleImage(file) {
+    const wrapper = document.createElement("div")
+    wrapper.className = "canvas-element canvas-img-container"
+    wrapper.style.left = "5%"
+    wrapper.style.top = "10%"
+    wrapper.style.width = "40%"
+    wrapper.innerHTML = `
+      <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
+      <button class="btn btn-sm position-absolute top-0 end-0 m-1 d-none delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
+      <div class="spinner-border text-dark m-4" role="status"></div>
+    `
+    this.canvasTarget.appendChild(wrapper)
+    
+    const formData = new FormData()
+    formData.append("image", file)
+    
+    try {
+      const response = await fetch("/entries/upload_image", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+          "Accept": "application/json"
+        }
+      })
+      
+      if (response.status === 429) {
+        const data = await response.json()
+        alert(data.error)
+        wrapper.remove()
+        return false; 
+      }
+      
+      const data = await response.json()
+      if (data.success) {
+        // Fix: Use setAttribute so it renders into the HTML string when saving
+        wrapper.setAttribute('data-image-id', data.image_id)
+        wrapper.dataset.imageId = data.image_id
+        
+        wrapper.innerHTML = `
+          <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
+          <button class="btn btn-sm position-absolute top-0 end-0 m-1 delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
+          <img src="${data.image_url}" draggable="false" alt="Journal image" style="width: 100%; height: auto; display: block;">
+          <div class="resize-handle" data-action="mousedown->journal-editor#resizeStart touchstart->journal-editor#resizeStart" aria-label="Resize element" tabindex="0"><i class="bi bi-arrows-angle-expand"></i></div>
+        `
+        return true;
+      } else {
+        wrapper.remove()
+        return true; 
+      }
+    } catch (e) {
+      wrapper.remove()
+      return true;
+    }
   }
 
   async deleteElement(event) {
@@ -159,7 +233,7 @@ export default class extends Controller {
   save() {
     const canvasClone = this.canvasTarget.cloneNode(true)
     canvasClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'))
-    canvasClone.querySelectorAll('.btn-danger').forEach(el => el.remove())
+    canvasClone.querySelectorAll('.delete-btn-overlay').forEach(el => el.remove())
     this.contentInputTarget.value = canvasClone.innerHTML
     this.formTarget.submit()
   }
@@ -257,6 +331,9 @@ export default class extends Controller {
     const element = e.target.closest('.canvas-element');
     const step = e.shiftKey ? 5 : 1;
 
+    let canvasRect = this.canvasTarget.getBoundingClientRect();
+    let elRect = element.getBoundingClientRect();
+
     if (isDragHandle) {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
@@ -271,8 +348,11 @@ export default class extends Controller {
           case 'ArrowRight': left += step; break;
         }
 
-        left = Math.max(0, Math.min(left, 90));
-        top = Math.max(0, Math.min(top, 90));
+        let maxLeftPct = Math.max(0, ((canvasRect.width - elRect.width) / canvasRect.width) * 100);
+        let maxTopPct = Math.max(0, ((canvasRect.height - elRect.height) / canvasRect.height) * 100);
+
+        left = Math.max(0, Math.min(left, maxLeftPct));
+        top = Math.max(0, Math.min(top, maxTopPct));
 
         element.style.left = `${left}%`;
         element.style.top = `${top}%`;
@@ -308,11 +388,14 @@ export default class extends Controller {
           case 'ArrowRight': width += step; break;
         }
 
-        width = Math.max(5, Math.min(width, 95));
+        let leftOffset = parseFloat(element.style.left) || 0;
+        let topOffset = parseFloat(element.style.top) || 0;
+
+        width = Math.max(5, Math.min(width, 100 - leftOffset));
         element.style.width = `${width}%`;
 
         if (!isImage) {
-          height = Math.max(5, Math.min(height, 95));
+          height = Math.max(5, Math.min(height, 100 - topOffset));
           targetNode.style.height = `${height}%`;
         }
       }

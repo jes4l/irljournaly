@@ -1,4 +1,4 @@
-threads_count = ENV.fetch("RAILS_MAX_THREADS", 15)
+threads_count = ENV.fetch("RAILS_MAX_THREADS", 20)
 threads threads_count, threads_count
 
 port ENV.fetch("PORT", 3000)

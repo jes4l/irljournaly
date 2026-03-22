@@ -8,10 +8,17 @@ export default class extends Controller {
 
   connect() {
     this.currentIndex = 0
-    this.viewers = []
+    this.viewers = new Array(this.urlsValue.length).fill(null)
+    this.loadingStates = new Array(this.urlsValue.length).fill(false)
     this.initialCameraStates = {}
-    this.buildSlides()
+    this.loadTimeout = null
+    
+    this.buildSlideDOM()
     this.updateButtons()
+
+    setTimeout(() => {
+      this.settleAndLoad()
+    }, 350)
   }
 
   disconnect() {
@@ -20,47 +27,129 @@ export default class extends Controller {
 
   cleanup() {
     this.viewers.forEach(v => {
-      if (v) v.dispose()
+      if (v) {
+        try { v.dispose() } catch(e) {}
+      }
     })
     this.viewers = []
     if (this.hasTrackTarget) this.trackTarget.innerHTML = ""
   }
 
-  buildSlides() {
+  buildSlideDOM() {
     this.urlsValue.forEach((url, index) => {
       const slide = document.createElement('div')
       slide.className = 'splat-slide'
+      slide.dataset.index = index
       this.trackTarget.appendChild(slide)
+      this.resetSlideDOM(index)
+    })
+  }
 
-      const viewer = new GaussianSplats3D.Viewer({
-        'rootElement': slide,
-        'cameraUp': [0, 1, 0],
-        'sharedMemoryForWorkers': true
-      })
+  resetSlideDOM(index) {
+    const slide = this.trackTarget.children[index]
+    if (!slide) return
 
-      viewer.addSplatScene(url, {
+    slide.innerHTML = `
+      <div class="position-absolute top-50 start-50 translate-middle text-white text-center loading-indicator">
+        <div class="spinner-border mb-2" role="status" style="width: 3rem; height: 3rem;"></div>
+        <div class="fw-bold" style="font-family: 'Patrick Hand', cursive; font-size: 1.5rem; text-shadow: 2px 2px 4px #000;">Loading splat...</div>
+      </div>
+    `
+  }
+
+  async settleAndLoad() {
+    this.cleanupDistantViewers()
+    this.viewers.forEach((v, i) => {
+      if (v && i !== this.currentIndex) v.stop()
+    })
+
+    if (!this.viewers[this.currentIndex]) {
+      await this.loadViewer(this.currentIndex)
+    } else {
+      this.viewers[this.currentIndex].start()
+      setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 50)
+    }
+
+    if (this.currentIndex + 1 < this.urlsValue.length && !this.viewers[this.currentIndex + 1]) {
+      this.loadViewer(this.currentIndex + 1)
+    }
+  }
+
+  cleanupDistantViewers() {
+    this.viewers.forEach((v, i) => {
+      if (Math.abs(i - this.currentIndex) > 1) {
+        if (v) {
+          try { v.dispose() } catch(e) {}
+          this.viewers[i] = null
+        }
+        this.loadingStates[i] = false
+        this.resetSlideDOM(i)
+      }
+    })
+  }
+
+  async loadViewer(index) {
+    if (this.viewers[index] || this.loadingStates[index]) return;
+
+    this.loadingStates[index] = true;
+    const slide = this.trackTarget.children[index];
+    const url = this.urlsValue[index];
+
+    const loader = slide.querySelector('.loading-indicator');
+    if (loader) loader.style.display = 'block';
+
+    const viewer = new GaussianSplats3D.Viewer({
+      'rootElement': slide,
+      'cameraUp': [0, 1, 0],
+      'halfPrecisionCovariancesOnGPU': true,
+      'devicePixelRatio': 1, 
+      'antialias': false     
+    });
+
+    this.viewers[index] = viewer;
+
+    try {
+      await viewer.addSplatScene(url, {
         'showLoadingUI': false,
         'rotation': [1, 0, 0, 0],
-        'scale': [1, 1, 1]
-      }).then(() => {
-        viewer.start()
-        this.frameViewer(viewer, index, slide)
-      }).catch((error) => {
-        console.error(error)
-      })
+        'scale': [1, 1, 1],
+        'splatAlphaRemovalThreshold': 20, 
+        'sphericalHarmonicsDegree': 0 
+      });
 
-      this.viewers.push(viewer)
-    })
+      if (!this.viewers[index]) {
+        return;
+      }
+
+      this.frameViewer(viewer, index, slide);
+      
+      if (index === this.currentIndex) {
+        viewer.start();
+        setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 50);
+      }
+      
+      if (loader) loader.style.display = 'none';
+    } catch (error) {
+      console.error("Failed to load splat:", error);
+      if (this.viewers[index]) {
+        if (loader) loader.innerHTML = `<div class="text-danger fw-bold" style="text-shadow: 1px 1px 2px #000;">Failed</div>`;
+        this.viewers[index] = null;
+      }
+    } finally {
+      this.loadingStates[index] = false;
+    }
   }
 
   frameViewer(viewer, index, slide) {
     if (!viewer.splatMesh) return
+    
     let box = new THREE.Box3()
     if (typeof viewer.splatMesh.getBoundingBox === 'function') {
       box = viewer.splatMesh.getBoundingBox()
     } else {
       box.setFromObject(viewer.splatMesh)
     }
+    
     const center = new THREE.Vector3()
     box.getCenter(center)
     const size = new THREE.Vector3()
@@ -75,9 +164,9 @@ export default class extends Controller {
     if (viewer.cameraControls) {
       viewer.cameraControls.target.copy(center)
       viewer.cameraControls.enableZoom = false
+      
       slide.addEventListener('wheel', (event) => {
         event.preventDefault()
-        
         const zoomSpeed = 0.005 
         const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(viewer.camera.quaternion)
         const moveAmount = event.deltaY * zoomSpeed
@@ -100,7 +189,6 @@ export default class extends Controller {
       slide.addEventListener('touchmove', (event) => {
         if (event.touches.length === 2) {
           event.preventDefault();
-
           const dx = event.touches[0].pageX - event.touches[1].pageX;
           const dy = event.touches[0].pageY - event.touches[1].pageY;
           const currentPinchDistance = Math.hypot(dx, dy);
@@ -115,7 +203,6 @@ export default class extends Controller {
             viewer.cameraControls.target.addScaledVector(direction, -moveAmount);
             viewer.cameraControls.update();
           }
-
           initialPinchDistance = currentPinchDistance;
         }
       }, { passive: false });
@@ -140,18 +227,19 @@ export default class extends Controller {
       currentViewer.camera.position.copy(initialState.position)
       if (currentViewer.cameraControls) {
         currentViewer.cameraControls.target.copy(initialState.target)
+        currentViewer.cameraControls.update()
       }
     }
   }
 
-  next() {
+  async next() {
     if (this.currentIndex < this.urlsValue.length - 1) {
       this.currentIndex++
       this.slideTrack()
     }
   }
 
-  prev() {
+  async prev() {
     if (this.currentIndex > 0) {
       this.currentIndex--
       this.slideTrack()
@@ -161,6 +249,15 @@ export default class extends Controller {
   slideTrack() {
     this.updateButtons()
     this.trackTarget.style.transform = `translateX(-${this.currentIndex * 100}vw)`
+    this.viewers.forEach((v) => {
+      if (v) v.stop()
+    })
+
+    clearTimeout(this.loadTimeout)
+
+    this.loadTimeout = setTimeout(() => {
+      this.settleAndLoad()
+    }, 300)
   }
 
   updateButtons() {

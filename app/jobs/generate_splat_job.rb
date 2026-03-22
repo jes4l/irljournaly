@@ -1,5 +1,6 @@
 require 'tmpdir'
 require 'fileutils'
+require 'timeout'
 
 class GenerateSplatJob < ApplicationJob
   queue_as :default
@@ -23,7 +24,16 @@ class GenerateSplatJob < ApplicationJob
       ml_sharp_path = "/Users/jesal.vadgama/Desktop/ml-sharp"
       command = "bash -c 'cd #{ml_sharp_path} && source venv/bin/activate && sharp predict -i #{input_dir} -o #{output_dir}'"
       
-      system(command)
+      pid = nil
+      begin
+        Timeout.timeout(600) do
+          pid = Process.spawn(command, pgroup: true)
+          Process.wait(pid)
+        end
+      rescue Timeout::Error
+        Rails.logger.error("ML Sharp timed out for #{image_blob.filename}")
+        Process.kill("-TERM", Process.getpgid(pid)) if pid rescue nil
+      end
 
       ply_file = Dir.glob(File.join(output_dir, "*.ply")).first
 
@@ -35,6 +45,16 @@ class GenerateSplatJob < ApplicationJob
         )
       else
         Rails.logger.error("ML Sharp failed or image was deleted for #{image_blob.filename}")
+        
+        if entry.reload && ActiveStorage::Attachment.exists?(id: attachment.id)
+          dummy_file_path = File.join(output_dir, "failed.txt")
+          File.write(dummy_file_path, "failed")
+          entry.splats.attach(
+            io: File.open(dummy_file_path),
+            filename: "#{attachment.id}.failed",
+            content_type: 'text/plain'
+          )
+        end
       end
     end
   end
