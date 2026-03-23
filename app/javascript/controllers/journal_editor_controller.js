@@ -3,7 +3,8 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [ 
     "canvas", "form", "contentInput", "imageInput",
-    "sizeInput", "fontInput", "boldBtn", "italicBtn", "underlineBtn"
+    "sizeInput", "fontInput", "boldBtn", "italicBtn", "underlineBtn",
+    "moodBadge"
   ]
 
   connect() {
@@ -12,6 +13,7 @@ export default class extends Controller {
     this.offsetX = 0
     this.offsetY = 0
     this.isUploading = false 
+    this.analyzeTimeout = null
 
     this.canvasTarget.querySelectorAll('.canvas-content').forEach(el => {
       el.setAttribute('contenteditable', 'true')
@@ -32,10 +34,95 @@ export default class extends Controller {
 
     this.selectionHandler = this.checkFormatting.bind(this)
     document.addEventListener("selectionchange", this.selectionHandler)
+
+    this.keydownHandler = (e) => {
+      if (e.target.closest('.canvas-content')) {
+        e.stopPropagation();
+      }
+    };
+    this.element.addEventListener('keydown', this.keydownHandler, true);
+
+    this.inputHandler = (e) => {
+      if (e.target.closest('.canvas-content')) {
+        clearTimeout(this.analyzeTimeout);
+        this.analyzeTimeout = setTimeout(() => {
+          this.analyzeOverallSentiment();
+        }, 500);
+      }
+    };
+    this.element.addEventListener('input', this.inputHandler, true);
+    this.focusoutHandler = (e) => {
+      const content = e.target.closest('.canvas-content');
+      if (content) {
+        if (content.innerText.trim() === '') {
+          const wrapper = content.closest('.canvas-element');
+          if (wrapper) wrapper.remove();
+        }
+        this.analyzeOverallSentiment();
+      }
+    };
+    this.element.addEventListener('focusout', this.focusoutHandler, true);
+    this.observer = new MutationObserver(() => {
+      clearTimeout(this.analyzeTimeout);
+      this.analyzeTimeout = setTimeout(() => {
+        this.analyzeOverallSentiment();
+      }, 500);
+    });
+    
+    this.observer.observe(this.canvasTarget, { 
+      childList: true, 
+      subtree: true, 
+      characterData: true 
+    });
+
+    this.analyzeOverallSentiment();
   }
 
   disconnect() {
     document.removeEventListener("selectionchange", this.selectionHandler)
+    this.element.removeEventListener('keydown', this.keydownHandler, true);
+    this.element.removeEventListener('focusout', this.focusoutHandler, true);
+    this.element.removeEventListener('input', this.inputHandler, true);
+    if (this.observer) this.observer.disconnect();
+  }
+
+  async analyzeOverallSentiment() {
+    if (!this.hasMoodBadgeTarget) return;
+
+    let allText = "";
+    this.canvasTarget.querySelectorAll('.canvas-content').forEach(el => {
+      allText += el.innerText + "\n";
+    });
+
+    allText = allText.trim();
+
+    if (!allText) {
+       this.moodBadgeTarget.className = "mt-2 badge bg-secondary text-white fs-6 shadow-sm border border-dark";
+       this.moodBadgeTarget.innerText = "Mood: Neutral";
+       return;
+    }
+    
+    try {
+      const response = await fetch('/analyse/sentiment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ text: allText })
+      });
+      
+      const data = await response.json();
+      
+      let bgClass = "bg-secondary";
+      if (data.mood === 'Good') bgClass = "bg-success";
+      else if (data.mood === 'Bad') bgClass = "bg-danger";
+
+      this.moodBadgeTarget.className = `mt-2 badge ${bgClass} text-white fs-6 shadow-sm border border-dark`;
+      this.moodBadgeTarget.innerText = `Mood: ${data.mood}`;
+    } catch (e) {
+    }
   }
 
   checkFormatting() {
@@ -179,7 +266,6 @@ export default class extends Controller {
       
       const data = await response.json()
       if (data.success) {
-        // Fix: Use setAttribute so it renders into the HTML string when saving
         wrapper.setAttribute('data-image-id', data.image_id)
         wrapper.dataset.imageId = data.image_id
         
@@ -213,6 +299,8 @@ export default class extends Controller {
         }
       })
     }
+    
+    this.analyzeOverallSentiment();
   }
 
   format(event) {
@@ -234,6 +322,10 @@ export default class extends Controller {
     const canvasClone = this.canvasTarget.cloneNode(true)
     canvasClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'))
     canvasClone.querySelectorAll('.delete-btn-overlay').forEach(el => el.remove())
+    canvasClone.querySelectorAll('.canvas-content').forEach(el => {
+      el.classList.remove('mood-good', 'mood-bad', 'mood-neutral');
+    });
+
     this.contentInputTarget.value = canvasClone.innerHTML
     this.formTarget.submit()
   }
@@ -320,85 +412,5 @@ export default class extends Controller {
   handleEnd() {
     this.dragging = null
     this.resizingElement = null
-  }
-
-  handleKeydown(e) {
-    const isDragHandle = e.target.closest('.drag-handle') === e.target;
-    const isResizeHandle = e.target.closest('.resize-handle') === e.target;
-
-    if (!isDragHandle && !isResizeHandle) return;
-
-    const element = e.target.closest('.canvas-element');
-    const step = e.shiftKey ? 5 : 1;
-
-    let canvasRect = this.canvasTarget.getBoundingClientRect();
-    let elRect = element.getBoundingClientRect();
-
-    if (isDragHandle) {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        
-        let left = parseFloat(element.style.left) || 0;
-        let top = parseFloat(element.style.top) || 0;
-
-        switch(e.key) {
-          case 'ArrowUp': top -= step; break;
-          case 'ArrowDown': top += step; break;
-          case 'ArrowLeft': left -= step; break;
-          case 'ArrowRight': left += step; break;
-        }
-
-        let maxLeftPct = Math.max(0, ((canvasRect.width - elRect.width) / canvasRect.width) * 100);
-        let maxTopPct = Math.max(0, ((canvasRect.height - elRect.height) / canvasRect.height) * 100);
-
-        left = Math.max(0, Math.min(left, maxLeftPct));
-        top = Math.max(0, Math.min(top, maxTopPct));
-
-        element.style.left = `${left}%`;
-        element.style.top = `${top}%`;
-      }
-    }
-
-    if (isResizeHandle) {
-      const isImage = !!element.querySelector('img');
-      const targetNode = isImage ? element : element.querySelector('.canvas-content');
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        element.style.width = '40%';
-        if (!isImage) targetNode.style.height = '15%';
-        return;
-      }
-
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        let width = parseFloat(element.style.width) || 40;
-        let height = isImage ? 0 : (parseFloat(targetNode.style.height) || 15);
-
-        switch(e.key) {
-          case 'ArrowUp':
-            if (!isImage) height -= step;
-            else width -= step;
-            break;
-          case 'ArrowDown':
-            if (!isImage) height += step;
-            else width += step;
-            break;
-          case 'ArrowLeft': width -= step; break;
-          case 'ArrowRight': width += step; break;
-        }
-
-        let leftOffset = parseFloat(element.style.left) || 0;
-        let topOffset = parseFloat(element.style.top) || 0;
-
-        width = Math.max(5, Math.min(width, 100 - leftOffset));
-        element.style.width = `${width}%`;
-
-        if (!isImage) {
-          height = Math.max(5, Math.min(height, 100 - topOffset));
-          targetNode.style.height = `${height}%`;
-        }
-      }
-    }
   }
 }

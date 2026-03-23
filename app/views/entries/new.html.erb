@@ -5,6 +5,13 @@
     <div class="position-absolute top-0 start-0 m-2 m-md-4 p-2 p-md-3 border border-dark rounded bg-white shadow-sm text-center z-3" style="font-family: 'Patrick Hand', cursive; line-height: 1;">
       <div class="fw-bold" style="font-size: clamp(2rem, 5vw, 3.5rem);"><%= Date.today.strftime("%d") %></div>
       <div style="font-size: clamp(1rem, 3vw, 1.5rem);"><%= Date.today.strftime("%B '%y") %></div>
+      
+      <% mood = @entry.sentiment.presence || 'Neutral' %>
+      <% bg_class = mood == 'Good' ? 'bg-success' : (mood == 'Bad' ? 'bg-danger' : 'bg-secondary') %>
+      
+      <div data-journal-editor-target="moodBadge" class="mt-2 badge <%= bg_class %> text-white fs-6 shadow-sm border border-dark">
+        Mood: <%= mood %>
+      </div>
     </div>
 
     <div class="journal-page w-100 h-100 position-absolute top-0 start-0" data-journal-editor-target="canvas">

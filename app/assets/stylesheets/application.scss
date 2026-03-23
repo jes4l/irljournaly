@@ -13,6 +13,7 @@ body {
 input[type="range"].form-range::-webkit-slider-thumb {
   background-color: #212529 !important;
 }
+
 input[type="range"].form-range::-moz-range-thumb {
   background-color: #212529 !important;
 }
@@ -303,7 +304,7 @@ input[type="range"].form-range::-moz-range-thumb {
     visibility: visible;
   }
 
-  .btn-close-splat, .btn-reset-splat, .btn-nav-splat {
+  .btn-close-splat, .btn-nav-splat {
     background-color: white !important;
     border: 2px solid #212529 !important;
     color: #212529 !important;
@@ -328,15 +329,6 @@ input[type="range"].form-range::-moz-range-thumb {
     right: unquote("max(15px, env(safe-area-inset-right))");
     width: 45px; height: 45px; font-size: 1.4rem;
     @media (min-width: 768px) { top: 30px; right: 30px; width: 50px; height: 50px; font-size: 1.6rem; }
-  }
-
-  .btn-reset-splat {
-    position: absolute;
-    bottom: unquote("max(60px, env(safe-area-inset-bottom))"); 
-    left: 50%; transform: translateX(-50%);
-    width: 50px; height: 50px; font-size: 1.4rem;
-    &:hover, &:focus-visible { transform: translateX(-50%) scale(1.1); }
-    @media (min-width: 768px) { bottom: 30px; width: 60px; height: 60px; font-size: 1.8rem; }
   }
 
   .btn-nav-splat {
@@ -369,4 +361,21 @@ input[type="range"].form-range::-moz-range-thumb {
     height: 100vh; 
     position: relative; 
   }
+}
+
+.mood-good { 
+  background-color: rgba(40, 167, 69, 0.15) !important; 
+  border: 2px dashed #28a745 !important; 
+}
+.mood-bad { 
+  background-color: rgba(220, 53, 69, 0.15) !important; 
+  border: 2px dashed #dc3545 !important; 
+}
+.mood-neutral { 
+  background-color: rgba(108, 117, 125, 0.15) !important; 
+  border: 2px dashed #6c757d !important; 
+}
+
+.mood-good:focus, .mood-bad:focus, .mood-neutral:focus { 
+  border-style: solid !important; 
 }

@@ -3,7 +3,7 @@ import * as GaussianSplats3D from '@mkkellogg/gaussian-splats-3d'
 import * as THREE from 'three'
 
 export default class extends Controller {
-  static values = { urls: Array }
+  static values = { urls: Array, imageUrls: Array }
   static targets = [ "track", "prevBtn", "nextBtn" ]
 
   connect() {
@@ -12,9 +12,12 @@ export default class extends Controller {
     this.loadingStates = new Array(this.urlsValue.length).fill(false)
     this.initialCameraStates = {}
     this.loadTimeout = null
-    
+
     this.buildSlideDOM()
     this.updateButtons()
+
+    this.keydownHandler = this.handleKeyDown.bind(this);
+    document.addEventListener('keydown', this.keydownHandler, true);
 
     setTimeout(() => {
       this.settleAndLoad()
@@ -23,6 +26,39 @@ export default class extends Controller {
 
   disconnect() {
     this.cleanup()
+    document.removeEventListener('keydown', this.keydownHandler, true);
+  }
+
+  handleKeyDown(event) {
+    if (['INPUT', 'TEXTAREA'].includes(event.target.tagName) || event.target.isContentEditable) return;
+    if (!this.element.classList.contains('active')) return;
+
+    const viewer = this.viewers[this.currentIndex];
+    if (!viewer || !viewer.camera || !viewer.cameraControls) return;
+
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    let moveAmount = 0;
+    const zoomStep = 0.6; 
+
+    if (['=', '+', 'i', 'I'].includes(event.key)) {
+      moveAmount = zoomStep;
+    } else if (['-', '_', 'o', 'O'].includes(event.key)) {
+      moveAmount = -zoomStep;
+    }
+
+    if (moveAmount !== 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(viewer.camera.quaternion);
+      viewer.camera.position.addScaledVector(direction, moveAmount);
+      viewer.cameraControls.target.addScaledVector(direction, moveAmount);
+      viewer.cameraControls.update();
+    }
   }
 
   cleanup() {
@@ -40,6 +76,10 @@ export default class extends Controller {
       const slide = document.createElement('div')
       slide.className = 'splat-slide'
       slide.dataset.index = index
+      slide.tabIndex = 0;
+      slide.setAttribute("role", "application");
+      slide.setAttribute("aria-label", "Interactive 3D Journal Viewer. Press the equals or I key to zoom in, and the minus or O key to zoom out. Click and drag your mouse to look around.");
+      
       this.trackTarget.appendChild(slide)
       this.resetSlideDOM(index)
     })
@@ -48,8 +88,11 @@ export default class extends Controller {
   resetSlideDOM(index) {
     const slide = this.trackTarget.children[index]
     if (!slide) return
+    
+    const imageUrl = this.imageUrlsValue && this.imageUrlsValue[index] ? this.imageUrlsValue[index] : "";
 
     slide.innerHTML = `
+      <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; z-index: -1; filter: blur(5px) brightness(0.7);" />
       <div class="position-absolute top-50 start-50 translate-middle text-white text-center loading-indicator">
         <div class="spinner-border mb-2" role="status" style="width: 3rem; height: 3rem;"></div>
         <div class="fw-bold" style="font-family: 'Patrick Hand', cursive; font-size: 1.5rem; text-shadow: 2px 2px 4px #000;">Loading splat...</div>
@@ -117,9 +160,7 @@ export default class extends Controller {
         'sphericalHarmonicsDegree': 0 
       });
 
-      if (!this.viewers[index]) {
-        return;
-      }
+      if (!this.viewers[index]) return;
 
       this.frameViewer(viewer, index, slide);
       
@@ -129,8 +170,10 @@ export default class extends Controller {
       }
       
       if (loader) loader.style.display = 'none';
+      const img = slide.querySelector('img');
+      if (img) img.style.display = 'none';
+      
     } catch (error) {
-      console.error("Failed to load splat:", error);
       if (this.viewers[index]) {
         if (loader) loader.innerHTML = `<div class="text-danger fw-bold" style="text-shadow: 1px 1px 2px #000;">Failed</div>`;
         this.viewers[index] = null;

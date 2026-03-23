@@ -8,7 +8,8 @@
   
   <div class="d-flex justify-content-center align-items-center mb-4 gap-3 gap-md-4">
     <%= link_to "<", entries_path(date: @current_date.prev_month), class: "text-dark text-decoration-none fs-2 fs-md-1 fw-bold hover-scale", aria: { label: "Previous month" } %>
-    <h1 class="text-center fw-bold m-0" style="font-size: clamp(2rem, 6vw, 4rem);" tabindex="0" aria-label="<%= @current_date.strftime("%B %Y") %>"><%= @current_date.strftime("%B %Y") %></h1>
+    <h1 class="text-center fw-bold m-0" style="font-size: clamp(2rem, 6vw, 4rem);"
+ tabindex="0" aria-label="<%= @current_date.strftime("%B %Y") %>"><%= @current_date.strftime("%B %Y") %></h1>
     <%= link_to ">", entries_path(date: @current_date.next_month), class: "text-dark text-decoration-none fs-2 fs-md-1 fw-bold hover-scale", aria: { label: "Next month" } %>
   </div>
   
@@ -30,8 +31,15 @@
             <% entry = @entries_by_date[day] %>
             
             <% if entry %>
-              <%= link_to entry_path(entry), class: "text-decoration-none text-white d-block", aria: { label: "View journal entry for #{day.strftime('%B %d, %Y')}" } do %>
-                <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-success shadow-sm border border-dark hover-scale">
+              <% bg_class = case entry.sentiment
+                            when 'Good' then 'bg-success text-white'
+                            when 'Bad' then 'bg-danger text-white'
+                            when 'Neutral' then 'bg-secondary text-white'
+                            else 'bg-success text-white'
+                            end %>
+                            
+              <%= link_to entry_path(entry), class: "text-decoration-none d-block", aria: { label: "View journal entry for #{day.strftime('%B %d, %Y')}" } do %>
+                <div class="rounded calendar-day d-flex justify-content-center align-items-center <%= bg_class %> shadow-sm border border-dark hover-scale">
                   <span class="fw-bold fs-4 fs-md-2"><%= day.day %></span>
                 </div>
               <% end %>
