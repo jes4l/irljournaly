@@ -56,7 +56,7 @@
 
     <%= form_with model: @entry, url: entries_path, method: :post, html: { class: "d-none", data: { journal_editor_target: "form" } } do |f| %>
       <%= f.hidden_field :content, data: { journal_editor_target: "contentInput" } %>
-      <%= f.file_field :images, multiple: true, accept: "image/*,capture=camera", data: { journal_editor_target: "imageInput", action: "change->journal-editor#handleImage" } %>
+      <%= f.file_field :images, multiple: true, accept: "image/*", data: { journal_editor_target: "imageInput", action: "change->journal-editor#handleImage" } %>
     <% end %>
 
   </div>

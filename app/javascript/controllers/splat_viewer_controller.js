@@ -30,7 +30,10 @@ export default class extends Controller {
   }
 
   handleKeyDown(event) {
-    if (['INPUT', 'TEXTAREA'].includes(event.target.tagName) || event.target.isContentEditable) return;
+    if (['INPUT', 'BUTTON', 'TEXTAREA', 'A'].includes(event.target.tagName) || event.target.isContentEditable) {
+      return; 
+    }
+    
     if (!this.element.classList.contains('active')) return;
 
     const viewer = this.viewers[this.currentIndex];
@@ -46,9 +49,9 @@ export default class extends Controller {
     const zoomStep = 0.6; 
 
     if (['=', '+', 'i', 'I'].includes(event.key)) {
-      moveAmount = zoomStep;
+      moveAmount = zoomStep; 
     } else if (['-', '_', 'o', 'O'].includes(event.key)) {
-      moveAmount = -zoomStep;
+      moveAmount = -zoomStep; 
     }
 
     if (moveAmount !== 0) {

@@ -15,8 +15,11 @@
           <li class="nav-item">
             <%= link_to "My Journals", entries_path, class: "nav-link text-dark fw-bold" %>
           </li>
+          <li class="nav-item">
+            <%= link_to "Community Gallery", community_posts_path, class: "nav-link text-dark fw-bold" %>
+          </li>
         </ul>
-        
+     
         <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mt-3 mt-lg-0 pb-3 pb-lg-0">
           <%= link_to "Profile", edit_user_registration_path, class: "nav-link text-dark text-decoration-none fs-5 fw-bold" %>
           <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false }, class: "btn btn-outline-dark fw-bold rounded-pill px-4 w-100 w-lg-auto" %>

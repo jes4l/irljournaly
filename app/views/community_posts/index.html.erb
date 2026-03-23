@@ -1,0 +1,39 @@
+<div class="container mt-4 mb-5">
+  <h1 class="text-center fw-bold mb-5" style="font-family: 'Patrick Hand', cursive; font-size: clamp(2.5rem, 6vw, 4rem);">Community Gallery</h1>
+  
+  <% if @posts.empty? %>
+    <div class="text-center text-muted fs-4 mt-5">
+      No one has posted any images yet! Be the first!
+    </div>
+  <% end %>
+
+  <div class="row g-4">
+    <% @posts.each do |post| %>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="card shadow-sm border-dark h-100 position-relative overflow-hidden group-hover" style="border-width: 2px; border-radius: 12px;">
+          
+          <% if post.user_id == current_user.id %>
+            <%= button_to community_post_path(post), method: :delete, class: "btn btn-danger btn-sm position-absolute top-0 end-0 m-2 shadow z-3 rounded-circle", data: { confirm: "Delete this post?" }, style: "width: 35px; height: 35px;" do %>
+              <i class="bi bi-trash"></i>
+            <% end %>
+          <% end %>
+
+          <%= image_tag post.image, class: "card-img-top", style: "object-fit: cover; height: 300px;" if post.image.attached? %>
+          
+          <div class="card-body bg-light text-center py-2 border-top border-dark" style="border-width: 2px;">
+            <small class="text-dark fw-bold fs-5">Shared by <%= post.user.first_name || 'Anonymous' %></small>
+          </div>
+          
+          <% if post.splat.attached? %>
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center hover-opacity-100" style="z-index: 2;">
+              <%= link_to community_post_path(post), class: "btn btn-primary btn-lg fw-bold rounded-pill shadow hover-scale" do %>
+                <i class="bi bi-box-arrow-in-right me-1"></i> Step In
+              <% end %>
+            </div>
+          <% end %>
+
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

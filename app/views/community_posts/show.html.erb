@@ -1,0 +1,25 @@
+<% if @post.splat.attached? %>
+  <div id="splat-overlay" class="splat-overlay active" data-controller="splat-viewer" 
+       data-splat-viewer-urls-value="<%= [rails_blob_path(@post.splat, only_path: true)].to_json %>"
+       data-splat-viewer-image-urls-value="<%= [rails_blob_path(@post.image, only_path: true)].to_json if @post.image.attached? %>">
+       
+    <%= link_to community_posts_path, class: "btn-close-splat text-decoration-none", aria: { label: "Back to Gallery" } do %>
+      <i class="bi bi-x-lg"></i>
+    <% end %>
+
+    <div class="position-absolute bottom-0 start-50 translate-middle-x mb-4 d-flex align-items-center gap-3 z-3">
+      <button class="btn btn-light rounded-circle shadow d-flex align-items-center justify-content-center hover-scale" style="width: 55px; height: 55px; border: 2px solid #212529;" data-action="click->splat-viewer#resetCamera" aria-label="Reset Camera">
+        <i class="bi bi-arrow-counterclockwise fs-4 text-dark"></i>
+      </button>
+    </div>
+    
+    <div class="splat-slider-viewport">
+      <div class="splat-slider-track" data-splat-viewer-target="track"></div>
+    </div>
+  </div>
+<% else %>
+  <div class="container mt-5 text-center">
+    <h2>3D Model not available for this post.</h2>
+    <%= link_to "Back to Gallery", community_posts_path, class: "btn btn-dark mt-3 rounded-pill" %>
+  </div>
+<% end %>

@@ -18,4 +18,5 @@ Rails.application.routes.draw do
   
   delete 'entries/delete_image/:image_id', to: 'entries#delete_image', as: :delete_image_entry
   post 'analyse/sentiment', to: 'analyse#sentiment'
+  resources :community_posts, only: [:index, :show, :create, :destroy] 
 end
