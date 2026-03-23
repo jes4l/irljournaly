@@ -7,9 +7,9 @@
     </div>
   <% end %>
 
-  <div class="row g-4">
+  <div class="community-masonry">
     <% @posts.each do |post| %>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="community-masonry-item">
         <div class="card shadow-sm border-dark h-100 position-relative overflow-hidden group-hover" style="border-width: 2px; border-radius: 12px;">
           
           <% if post.user_id == current_user.id %>
@@ -18,19 +18,19 @@
             <% end %>
           <% end %>
 
-          <%= image_tag post.image, class: "card-img-top", style: "object-fit: cover; height: 300px;" if post.image.attached? %>
+          <%= image_tag post.image, class: "w-100 h-auto", style: "display: block;" if post.image.attached? %>
           
-          <div class="card-body bg-light text-center py-2 border-top border-dark" style="border-width: 2px;">
-            <small class="text-dark fw-bold fs-5">Shared by <%= post.user.first_name || 'Anonymous' %></small>
-          </div>
-          
-          <% if post.splat.attached? %>
-            <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center hover-opacity-100" style="z-index: 2;">
+          <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex flex-column justify-content-center align-items-center hover-opacity-100" style="z-index: 2;">
+            <div class="text-white fw-bold fs-4 mb-3 text-center px-2" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+              Shared by <%= post.user.first_name || 'Anonymous' %>
+            </div>
+            
+            <% if post.splat.attached? %>
               <%= link_to community_post_path(post), class: "btn btn-primary btn-lg fw-bold rounded-pill shadow hover-scale" do %>
                 <i class="bi bi-box-arrow-in-right me-1"></i> Step In
               <% end %>
-            </div>
-          <% end %>
+            <% end %>
+          </div>
 
         </div>
       </div>

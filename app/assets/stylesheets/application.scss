@@ -109,7 +109,7 @@ input[type="range"].form-range::-moz-range-thumb {
   box-shadow: 0 15px 35px rgba(0,0,0,0.2);
   border-radius: 12px;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; 
 }
 
 .journal-page {
@@ -120,7 +120,7 @@ input[type="range"].form-range::-moz-range-thumb {
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
-  padding-bottom: 50vh;
+  padding-bottom: 50vh !important; 
 }
 
 .journal-toolbar {
@@ -151,8 +151,8 @@ input[type="range"].form-range::-moz-range-thumb {
 .canvas-element.canvas-img-container {
   border: 2px dashed transparent;
   padding: 0;
-  height: auto !important;
-  display: inline-block;
+  height: auto !important; 
+  display: inline-block; 
 }
 
 .canvas-element.canvas-img-container:hover, 
@@ -167,7 +167,7 @@ input[type="range"].form-range::-moz-range-thumb {
 .canvas-element.canvas-img-container img {
   width: 100%;
   height: auto;
-  max-height: 500px;
+  max-height: 500px; 
   object-fit: contain;
   pointer-events: none;
   display: block;
@@ -395,4 +395,18 @@ input[type="range"].form-range::-moz-range-thumb {
 
 .img-hover-overlay {
   backdrop-filter: blur(2px);
+}
+
+.community-masonry {
+  column-count: 1;
+  column-gap: 1.5rem;
+  
+  @media (min-width: 576px) { column-count: 2; }
+  @media (min-width: 768px) { column-count: 3; }
+  @media (min-width: 992px) { column-count: 4; }
+}
+
+.community-masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
 }
