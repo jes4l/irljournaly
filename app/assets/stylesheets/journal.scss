@@ -5,24 +5,51 @@ body.journal-active {
 
 .journal-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   flex-direction: column;
   gap: 15px;
   height: calc(100vh - 90px); 
   width: 100vw;
   padding: 10px;
+  overflow-x: auto; 
+  overflow-y: hidden;
+  
+  @media (min-width: 1024px) {
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+}
+
+.viewer-header {
+  min-width: 1000px;
+  @media (max-width: 1023px) {
+    position: sticky;
+    left: 10px;
+    width: calc(100vw - 20px) !important;
+    min-width: 0 !important;
+    z-index: 100;
+  }
+  @media (min-width: 1024px) {
+    min-width: 0;
+  }
 }
 
 .journal-book {
-  width: 95vw;
+  width: 1000px; 
   max-width: 1300px;
   flex: 1; 
+  flex-shrink: 0; 
   background-color: #fdfbf7;
   box-shadow: 0 15px 35px rgba(0,0,0,0.2);
   border-radius: 12px;
   position: relative;
   overflow: hidden; 
+  
+  @media (min-width: 1024px) {
+    width: 95vw;
+  }
 }
 
 .journal-sticker {
@@ -75,7 +102,7 @@ body.journal-active {
 }
 
 .journal-toolbar {
-  width: 95vw;
+  width: calc(100vw - 20px);
   max-width: 700px;
   background: rgba(245, 245, 245, 0.98);
   border: 1px solid #ddd;
@@ -86,11 +113,15 @@ body.journal-active {
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   flex-shrink: 0;
-  z-index: 20;
-  margin-bottom: unquote("max(25px, env(safe-area-inset-bottom))");
-  @media (min-width: 768px) { margin-bottom: 0; }
+  z-index: 100;
+  margin-bottom: unquote("max(10px, env(safe-area-inset-bottom))");
+  
+  @media (max-width: 1023px) {
+    position: sticky;
+    left: 10px; 
+  }
 }
 
 .canvas-element {

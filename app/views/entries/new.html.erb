@@ -1,17 +1,17 @@
 <div class="journal-container" data-controller="journal-editor">
   <div class="journal-book" data-action="mousemove->journal-editor#handleMove mouseup->journal-editor#handleEnd mouseleave->journal-editor#handleEnd touchmove->journal-editor#handleMove touchend->journal-editor#handleEnd touchcancel->journal-editor#handleEnd keydown->journal-editor#handleKeydown">
     
-    <div class="journal-sticker">
-      <div class="sticker-day"><%= Date.today.strftime("%d") %></div>
-      <div class="sticker-month"><%= Date.today.strftime("%B '%y") %></div>
-      <% mood = @entry.sentiment.presence || 'Neutral' %>
-      <% bg_class = mood == 'Good' ? 'bg-success' : (mood == 'Bad' ? 'bg-danger' : 'bg-secondary') %>
-      <div data-journal-editor-target="moodBadge" class="badge <%= bg_class %> text-white border border-dark sticker-mood">
-        Mood: <%= mood %>
-      </div>
-    </div>
-
     <div class="journal-page" data-journal-editor-target="canvas">
+      <div class="journal-sticker">
+        <div class="sticker-day"><%= Date.today.strftime("%d") %></div>
+        <div class="sticker-month"><%= Date.today.strftime("%B '%y") %></div>
+        <% mood = @entry.sentiment.presence || 'Neutral' %>
+        <% bg_class = mood == 'Good' ? 'bg-success' : (mood == 'Bad' ? 'bg-danger' : 'bg-secondary') %>
+        <div data-journal-editor-target="moodBadge" class="badge <%= bg_class %> text-white border border-dark sticker-mood">
+          Mood: <%= mood %>
+        </div>
+      </div>
+
       <% if @entry.content.present? %>
         <%== @entry.content %>
       <% end %>
@@ -39,6 +39,7 @@
       <option value="'Courier New', Courier, monospace">Courier</option>
       <option value="'Comic Sans MS', cursive">Comic Sans</option>
     </select>
+    
     <div class="vr bg-secondary mx-2"></div>
     <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#addText" title="Add Text"><i class="bi bi-pencil-fill"></i></button>
     <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#triggerImage" title="Add Image"><i class="bi bi-image-fill"></i></button>

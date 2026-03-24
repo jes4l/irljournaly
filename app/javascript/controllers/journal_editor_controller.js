@@ -221,6 +221,7 @@ export default class extends Controller {
     const canvasClone = this.canvasTarget.cloneNode(true);
     canvasClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
     canvasClone.querySelectorAll('.delete-btn-overlay, .drag-handle, .resize-handle').forEach(el => el.remove());
+    canvasClone.querySelectorAll('.journal-sticker').forEach(el => el.remove());
     
     this.contentInputTarget.value = canvasClone.innerHTML;
     this.formTarget.submit();
