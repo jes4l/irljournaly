@@ -63,20 +63,25 @@
     <button class="btn-close-splat" onclick="document.getElementById('splat-overlay').classList.remove('active'); if(window.speechSynthesis) window.speechSynthesis.cancel(); document.querySelectorAll('audio, video').forEach(m => m.pause());"><i class="bi bi-x-lg"></i></button>
     <div class="position-absolute start-50 translate-middle-x d-flex align-items-center gap-3 z-3 splat-controls-container">
       <button class="btn btn-light rounded-circle shadow d-flex align-items-center justify-content-center hover-scale" style="width: 55px; height: 55px; border: 2px solid #212529;" data-action="click->splat-viewer#resetCamera"><i class="bi bi-arrow-counterclockwise fs-4 text-dark"></i></button>
-      <div data-controller="transcript-player" data-transcript-player-entry-id-value="<%= @entry.id %>" data-transcript-player-original-text-value="<%= strip_tags(@entry.content).gsub("&nbsp;", " ").strip.gsub('"', '&quot;') %>">
-        <div class="bg-light rounded-pill shadow d-flex align-items-center px-2" style="height: 55px; border: 2px solid #212529; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
-          <button class="btn btn-light rounded-circle d-flex align-items-center justify-content-center border-0 p-0" style="width: 40px; height: 40px; outline: none; box-shadow: none;" data-action="click->transcript-player#togglePlay" data-transcript-player-target="playBtn" aria-label="Play Audio">
-            <i class="bi bi-play-fill fs-2 text-dark"></i>
-          </button>
-          <div class="tts-controls d-flex align-items-center overflow-hidden" data-transcript-player-target="ttsControls" style="width: 0; opacity: 0; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
-            <span class="mx-2 small fw-bold text-muted" data-transcript-player-target="timeDisplay" style="white-space: nowrap; font-family: sans-serif; font-size: 0.85rem;">0:00 / 0:00</span>
-            <input type="range" class="form-range custom-range mx-1" min="0" max="100" value="0" style="width: 140px; cursor: pointer;" data-transcript-player-target="progressBar" data-action="input->transcript-player#dragProgress change->transcript-player#seekTTS">
-            <button class="btn btn-sm text-secondary p-0 ms-1 me-1 hover-scale" data-action="click->transcript-player#minimizeTTS" aria-label="Minimize Audio Player">
-              <i class="bi bi-x-circle-fill fs-5 text-dark"></i>
+      
+      <% plain_text = strip_tags(@entry.content.to_s).gsub("&nbsp;", " ").strip.gsub('"', '&quot;') %>
+      <% if plain_text.present? %>
+        <div data-controller="transcript-player" data-transcript-player-entry-id-value="<%= @entry.id %>" data-transcript-player-original-text-value="<%= plain_text %>">
+          <div class="bg-light rounded-pill shadow d-flex align-items-center px-2" style="height: 55px; border: 2px solid #212529; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
+            <button class="btn btn-light rounded-circle d-flex align-items-center justify-content-center border-0 p-0" style="width: 40px; height: 40px; outline: none; box-shadow: none;" data-action="click->transcript-player#togglePlay" data-transcript-player-target="playBtn" aria-label="Play Audio">
+              <i class="bi bi-play-fill fs-2 text-dark"></i>
             </button>
+            <div class="tts-controls d-flex align-items-center overflow-hidden" data-transcript-player-target="ttsControls" style="width: 0; opacity: 0; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
+              <span class="mx-2 small fw-bold text-muted" data-transcript-player-target="timeDisplay" style="white-space: nowrap; font-family: sans-serif; font-size: 0.85rem;">0:00 / 0:00</span>
+              <input type="range" class="form-range custom-range mx-1" min="0" max="100" value="0" style="width: 140px; cursor: pointer;" data-transcript-player-target="progressBar" data-action="input->transcript-player#dragProgress change->transcript-player#seekTTS">
+              <button class="btn btn-sm text-secondary p-0 ms-1 me-1 hover-scale" data-action="click->transcript-player#minimizeTTS" aria-label="Minimize Audio Player">
+                <i class="bi bi-x-circle-fill fs-5 text-dark"></i>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      <% end %>
+
     </div>
     <% if valid_splats.count > 1 %>
       <button class="btn-nav-splat btn-prev" data-action="click->splat-viewer#prev" data-splat-viewer-target="prevBtn" style="display: none;"><i class="bi bi-chevron-left"></i></button>
