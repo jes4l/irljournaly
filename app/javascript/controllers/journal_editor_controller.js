@@ -14,6 +14,11 @@ export default class extends Controller {
     this.offsetY = 0
     this.isUploading = false 
     this.analyzeTimeout = null
+    
+    this.autoScrollFrame = null;
+    this.scrollSpeed = 0;
+    this.lastClientX = 0;
+    this.lastClientY = 0;
 
     this.canvasTarget.querySelectorAll('.canvas-content').forEach(el => {
       el.setAttribute('contenteditable', 'true')
@@ -71,12 +76,7 @@ export default class extends Controller {
       }, 500);
     });
     
-    this.observer.observe(this.canvasTarget, { 
-      childList: true, 
-      subtree: true, 
-      characterData: true 
-    });
-
+    this.observer.observe(this.canvasTarget, { childList: true, subtree: true, characterData: true });
     this.analyzeOverallSentiment();
   }
 
@@ -86,6 +86,7 @@ export default class extends Controller {
     this.element.removeEventListener('focusout', this.focusoutHandler, true);
     this.element.removeEventListener('input', this.inputHandler, true);
     if (this.observer) this.observer.disconnect();
+    if (this.autoScrollFrame) cancelAnimationFrame(this.autoScrollFrame);
   }
 
   async analyzeOverallSentiment() {
@@ -123,8 +124,7 @@ export default class extends Controller {
 
       this.moodBadgeTarget.className = `mt-2 badge ${bgClass} text-white fs-6 shadow-sm border border-dark`;
       this.moodBadgeTarget.innerText = `Mood: ${data.mood}`;
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   checkFormatting() {
@@ -155,12 +155,15 @@ export default class extends Controller {
   addText() {
     const wrapper = document.createElement("div")
     wrapper.className = "canvas-element canvas-text"
-    const canvasRect = this.canvasTarget.getBoundingClientRect();
-    const scrollTopPct = (this.canvasTarget.scrollTop / canvasRect.height) * 100;
     
-    wrapper.style.left = "5%"
-    wrapper.style.top = `${scrollTopPct + 10}%`
-    wrapper.style.width = "40%"
+    const canvasRect = this.canvasTarget.getBoundingClientRect();
+    const scrollTop = this.canvasTarget.scrollTop;
+    
+    const topCqw = ((scrollTop + 50) / canvasRect.width) * 100;
+    
+    wrapper.style.left = "5cqw"
+    wrapper.style.top = `${topCqw}cqw`
+    wrapper.style.width = "40cqw"
     wrapper.innerHTML = `
       <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
       <button class="btn btn-sm position-absolute top-0 end-0 m-1 delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
@@ -199,10 +202,7 @@ export default class extends Controller {
           resolve(newFile);
         }, 'image/png', 1.0);
       };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve(file); 
-      };
+      img.onerror = () => { resolve(file); };
       img.src = url;
     });
   }
@@ -212,16 +212,11 @@ export default class extends Controller {
     event.target.value = ""; 
     
     if (!files.length) return;
-
     if (files.length > 5) {
       alert("You can only upload a maximum of 5 images at a time.");
       return;
     }
-
-    if (this.isUploading) {
-      alert("Please wait for the current images to finish uploading before adding more.");
-      return;
-    }
+    if (this.isUploading) return;
 
     this.isUploading = true; 
 
@@ -239,12 +234,15 @@ export default class extends Controller {
   async uploadSingleImage(file) {
     const wrapper = document.createElement("div")
     wrapper.className = "canvas-element canvas-img-container"
-    const canvasRect = this.canvasTarget.getBoundingClientRect();
-    const scrollTopPct = (this.canvasTarget.scrollTop / canvasRect.height) * 100;
     
-    wrapper.style.left = "5%"
-    wrapper.style.top = `${scrollTopPct + 10}%`
-    wrapper.style.width = "40%"
+    const canvasRect = this.canvasTarget.getBoundingClientRect();
+    const scrollTop = this.canvasTarget.scrollTop;
+    
+    const topCqw = ((scrollTop + 50) / canvasRect.width) * 100;
+    
+    wrapper.style.left = "5cqw"
+    wrapper.style.top = `${topCqw}cqw`
+    wrapper.style.width = "40cqw"
     wrapper.innerHTML = `
       <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
       <button class="btn btn-sm position-absolute top-0 end-0 m-1 d-none delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
@@ -274,9 +272,7 @@ export default class extends Controller {
       
       const data = await response.json()
       if (data.success) {
-        wrapper.setAttribute('data-image-id', data.image_id)
         wrapper.dataset.imageId = data.image_id
-        
         wrapper.innerHTML = `
           <div class="drag-handle" data-action="mousedown->journal-editor#dragStart touchstart->journal-editor#dragStart" tabindex="0" aria-label="Drag element"><i class="bi bi-arrows-move"></i></div>
           <button class="btn btn-sm position-absolute top-0 end-0 m-1 delete-btn-overlay" data-action="click->journal-editor#deleteElement" style="z-index: 10;" aria-label="Delete element" tabindex="0"><i class="bi bi-trash"></i></button>
@@ -330,7 +326,6 @@ export default class extends Controller {
     const canvasClone = this.canvasTarget.cloneNode(true)
     canvasClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'))
     canvasClone.querySelectorAll('.delete-btn-overlay').forEach(el => el.remove())
-    
     canvasClone.querySelectorAll('.canvas-content').forEach(el => {
       el.classList.remove('mood-good', 'mood-bad', 'mood-neutral');
     });
@@ -348,6 +343,11 @@ export default class extends Controller {
       const clientY = e.touches ? e.touches[0].clientY : e.clientY
       this.offsetX = clientX - rect.left
       this.offsetY = clientY - rect.top
+      
+      this.lastClientX = clientX;
+      this.lastClientY = clientY;
+      this.scrollSpeed = 0;
+      this.startAutoScroll();
     }
   }
 
@@ -363,7 +363,7 @@ export default class extends Controller {
       const startX = e.touches ? e.touches[0].clientX : e.clientX
       const startY = e.touches ? e.touches[0].clientY : e.clientY
       const startWidth = parseFloat(getComputedStyle(this.resizingElement).width)
-      const startHeight = this.isImage ? 0 : parseFloat(getComputedStyle(this.targetNode).height)
+      const startHeight = parseFloat(getComputedStyle(this.targetNode).height)
       
       this.resizeData = { startX, startY, startWidth, startHeight }
     }
@@ -376,16 +376,33 @@ export default class extends Controller {
       const clientX = e.touches ? e.touches[0].clientX : e.clientX
       const clientY = e.touches ? e.touches[0].clientY : e.clientY
       
+      this.lastClientX = clientX;
+      this.lastClientY = clientY;
+
+      const edgeThreshold = 60;
+      if (clientY > canvasRect.bottom - edgeThreshold) {
+        this.scrollSpeed = 15;
+      } else if (clientY < canvasRect.top + edgeThreshold) {
+        this.scrollSpeed = -15;
+      } else {
+        this.scrollSpeed = 0;
+      }
+      
+      const elRect = this.dragging.getBoundingClientRect();
+      
       let newLeft = clientX - canvasRect.left - this.offsetX + this.canvasTarget.scrollLeft;
       let newTop = clientY - canvasRect.top - this.offsetY + this.canvasTarget.scrollTop;
-      newLeft = Math.max(0, newLeft);
+      
+      let maxLeft = canvasRect.width - elRect.width;
+      
+      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
       newTop = Math.max(0, newTop); 
       
-      let leftPct = (newLeft / canvasRect.width) * 100;
-      let topPct = (newTop / canvasRect.height) * 100;
+      let leftCqw = (newLeft / canvasRect.width) * 100;
+      let topCqw = (newTop / canvasRect.width) * 100;
 
-      this.dragging.style.left = `${leftPct}%`;
-      this.dragging.style.top = `${topPct}%`;
+      this.dragging.style.left = `${leftCqw}cqw`
+      this.dragging.style.top = `${topCqw}cqw`
     }
     
     if (this.resizingElement) {
@@ -398,20 +415,17 @@ export default class extends Controller {
       
       const canvasRect = this.canvasTarget.getBoundingClientRect()
       const elLeft = this.resizingElement.offsetLeft
-      const elTop = this.resizingElement.offsetTop
       
       const maxWidth = canvasRect.width - elLeft - 10 
-      
       let newWidth = Math.max(50, Math.min(this.resizeData.startWidth + dx, maxWidth))
-      let widthPct = (newWidth / canvasRect.width) * 100;
+      let widthCqw = (newWidth / canvasRect.width) * 100;
       
-      this.resizingElement.style.width = `${widthPct}%`
+      this.resizingElement.style.width = `${widthCqw}cqw`
       
       if (!this.isImage) {
-        const maxHeight = canvasRect.height - elTop - 10
-        let newHeight = Math.max(50, Math.min(this.resizeData.startHeight + dy, maxHeight))
-        let heightPct = (newHeight / canvasRect.height) * 100;
-        this.targetNode.style.height = `${heightPct}%`
+        let newHeight = Math.max(50, this.resizeData.startHeight + dy)
+        let heightCqw = (newHeight / canvasRect.width) * 100;
+        this.targetNode.style.height = `${heightCqw}cqw`
       }
     }
   }
@@ -419,6 +433,28 @@ export default class extends Controller {
   handleEnd() {
     this.dragging = null
     this.resizingElement = null
+    this.scrollSpeed = 0;
+    if (this.autoScrollFrame) {
+      cancelAnimationFrame(this.autoScrollFrame);
+      this.autoScrollFrame = null;
+    }
+  }
+
+  startAutoScroll() {
+    const scrollStep = () => {
+      if (this.dragging && this.scrollSpeed !== 0) {
+        this.canvasTarget.scrollTop += this.scrollSpeed;
+        
+        const canvasRect = this.canvasTarget.getBoundingClientRect();
+        let newTop = this.lastClientY - canvasRect.top - this.offsetY + this.canvasTarget.scrollTop;
+        newTop = Math.max(0, newTop);
+        
+        let topCqw = (newTop / canvasRect.width) * 100;
+        this.dragging.style.top = `${topCqw}cqw`;
+      }
+      this.autoScrollFrame = requestAnimationFrame(scrollStep);
+    };
+    this.autoScrollFrame = requestAnimationFrame(scrollStep);
   }
 
   handleKeydown(e) {
@@ -428,7 +464,7 @@ export default class extends Controller {
     if (!isDragHandle && !isResizeHandle) return;
 
     const element = e.target.closest('.canvas-element');
-    const step = e.shiftKey ? 5 : 1;
+    const step = e.shiftKey ? 2 : 0.5;
 
     let canvasRect = this.canvasTarget.getBoundingClientRect();
     let elRect = element.getBoundingClientRect();
@@ -437,23 +473,23 @@ export default class extends Controller {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         
-        let left = parseFloat(element.style.left) || 0;
-        let top = parseFloat(element.style.top) || 0;
+        let leftCqw = parseFloat(element.style.left) || 0;
+        let topCqw = parseFloat(element.style.top) || 0;
 
         switch(e.key) {
-          case 'ArrowUp': top -= step; break;
-          case 'ArrowDown': top += step; break;
-          case 'ArrowLeft': left -= step; break;
-          case 'ArrowRight': left += step; break;
+          case 'ArrowUp': topCqw -= step; break;
+          case 'ArrowDown': topCqw += step; break;
+          case 'ArrowLeft': leftCqw -= step; break;
+          case 'ArrowRight': leftCqw += step; break;
         }
 
-        let maxLeftPct = Math.max(0, ((canvasRect.width - elRect.width) / canvasRect.width) * 100);
+        let maxLeftCqw = ((canvasRect.width - elRect.width) / canvasRect.width) * 100;
 
-        left = Math.max(0, Math.min(left, maxLeftPct));
-        top = Math.max(0, top);
+        leftCqw = Math.max(0, Math.min(leftCqw, maxLeftCqw));
+        topCqw = Math.max(0, topCqw);
 
-        element.style.left = `${left}%`;
-        element.style.top = `${top}%`;
+        element.style.left = `${leftCqw}cqw`;
+        element.style.top = `${topCqw}cqw`;
       }
     }
 
@@ -463,38 +499,37 @@ export default class extends Controller {
 
       if (e.key === 'Enter') {
         e.preventDefault();
-        element.style.width = '40%';
-        if (!isImage) targetNode.style.height = '15%';
+        element.style.width = '40cqw';
+        if (!isImage) targetNode.style.height = '15cqw';
         return;
       }
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
-        let width = parseFloat(element.style.width) || 40;
-        let height = isImage ? 0 : (parseFloat(targetNode.style.height) || 15);
+        let widthCqw = parseFloat(element.style.width) || 40;
+        let heightCqw = isImage ? 0 : parseFloat(targetNode.style.height) || 15;
 
         switch(e.key) {
           case 'ArrowUp':
-            if (!isImage) height -= step;
-            else width -= step;
+            if (!isImage) heightCqw -= step;
+            else widthCqw -= step;
             break;
           case 'ArrowDown':
-            if (!isImage) height += step;
-            else width += step;
+            if (!isImage) heightCqw += step;
+            else widthCqw += step;
             break;
-          case 'ArrowLeft': width -= step; break;
-          case 'ArrowRight': width += step; break;
+          case 'ArrowLeft': widthCqw -= step; break;
+          case 'ArrowRight': widthCqw += step; break;
         }
 
         let leftOffset = parseFloat(element.style.left) || 0;
-        let topOffset = parseFloat(element.style.top) || 0;
 
-        width = Math.max(5, Math.min(width, 100 - leftOffset));
-        element.style.width = `${width}%`;
+        widthCqw = Math.max(5, Math.min(widthCqw, 100 - leftOffset));
+        element.style.width = `${widthCqw}cqw`;
 
         if (!isImage) {
-          height = Math.max(5, Math.min(height, 100 - topOffset));
-          targetNode.style.height = `${height}%`;
+          heightCqw = Math.max(5, heightCqw);
+          targetNode.style.height = `${heightCqw}cqw`;
         }
       }
     }

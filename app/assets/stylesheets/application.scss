@@ -121,6 +121,7 @@ input[type="range"].form-range::-moz-range-thumb {
   overflow-x: hidden;
   position: relative;
   padding-bottom: 50vh !important; 
+  container-type: inline-size; 
 }
 
 .journal-toolbar {
@@ -178,12 +179,22 @@ input[type="range"].form-range::-moz-range-thumb {
   color: #dc3545 !important;
   border: 2px solid #dc3545 !important;
   box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
-  transition: all 0.2s;
-  &:hover, &:focus-visible {
-    background-color: #dc3545 !important;
-    color: white !important;
-    border-color: white !important;
-  }
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.canvas-element:hover .delete-btn-overlay,
+.canvas-element:focus-within .delete-btn-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.canvas-element .delete-btn-overlay:hover, 
+.canvas-element .delete-btn-overlay:focus-visible {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border-color: white !important;
 }
 
 .drag-handle {
@@ -366,22 +377,10 @@ input[type="range"].form-range::-moz-range-thumb {
   }
 }
 
-.mood-good { 
-  background-color: rgba(40, 167, 69, 0.15) !important; 
-  border: 2px dashed #28a745 !important; 
-}
-.mood-bad { 
-  background-color: rgba(220, 53, 69, 0.15) !important; 
-  border: 2px dashed #dc3545 !important; 
-}
-.mood-neutral { 
-  background-color: rgba(108, 117, 125, 0.15) !important; 
-  border: 2px dashed #6c757d !important; 
-}
-
-.mood-good:focus, .mood-bad:focus, .mood-neutral:focus { 
-  border-style: solid !important; 
-}
+.mood-good { background-color: rgba(40, 167, 69, 0.15) !important; border: 2px dashed #28a745 !important; }
+.mood-bad { background-color: rgba(220, 53, 69, 0.15) !important; border: 2px dashed #dc3545 !important; }
+.mood-neutral { background-color: rgba(108, 117, 125, 0.15) !important; border: 2px dashed #6c757d !important; }
+.mood-good:focus, .mood-bad:focus, .mood-neutral:focus { border-style: solid !important; }
 
 .hover-opacity-100 {
   opacity: 0;
@@ -389,12 +388,16 @@ input[type="range"].form-range::-moz-range-thumb {
   backdrop-filter: blur(2px);
 }
 
-.group-hover:hover .hover-opacity-100 {
+.group-hover:hover .hover-opacity-100,
+.group-hover:focus-within .hover-opacity-100 {
   opacity: 1 !important;
 }
 
 .img-hover-overlay {
   backdrop-filter: blur(2px);
+}
+.canvas-img-container:focus-within .img-hover-overlay {
+  opacity: 1;
 }
 
 .community-masonry {
@@ -409,4 +412,14 @@ input[type="range"].form-range::-moz-range-thumb {
 .community-masonry-item {
   break-inside: avoid;
   margin-bottom: 1.5rem;
+}
+
+.community-masonry-item .delete-post-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.community-masonry-item:hover .delete-post-btn,
+.community-masonry-item:focus-within .delete-post-btn {
+  opacity: 1;
 }

@@ -17,19 +17,22 @@ export default class extends Controller {
       overlay.style.zIndex = '20';
 
       overlay.innerHTML = `
-        <button data-action="click->journal-viewer#share" data-image-id="${imageId}" class="btn btn-primary btn-sm rounded-pill fw-bold shadow w-75 hover-scale" title="Post to Community Gallery">
+        <button data-action="click->journal-viewer#share" data-image-id="${imageId}" class="btn btn-primary btn-sm rounded-pill fw-bold shadow w-75 hover-scale" title="Post to Community Gallery" tabindex="0">
           <i class="bi bi-globe"></i> Share to Community
         </button>
       `;
 
       container.addEventListener('mouseenter', () => overlay.style.opacity = '1');
       container.addEventListener('mouseleave', () => overlay.style.opacity = '0');
+      container.addEventListener('focusin', () => overlay.style.opacity = '1');
+      container.addEventListener('focusout', () => overlay.style.opacity = '0');
 
       container.appendChild(overlay);
     });
   }
 
   async share(event) {
+    event.preventDefault(); 
     const btn = event.currentTarget;
     const imageId = btn.dataset.imageId;
     const originalHtml = btn.innerHTML;

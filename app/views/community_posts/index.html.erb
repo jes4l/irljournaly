@@ -9,30 +9,28 @@
 
   <div class="community-masonry">
     <% @posts.each do |post| %>
-      <div class="community-masonry-item">
-        <div class="card shadow-sm border-dark h-100 position-relative overflow-hidden group-hover" style="border-width: 2px; border-radius: 12px;">
+      <div class="community-masonry-item position-relative overflow-hidden group-hover rounded-4 shadow-sm">
+        
+        <% if post.user_id == current_user.id %>
+          <%= button_to community_post_path(post), method: :delete, class: "btn btn-danger btn-sm position-absolute top-0 end-0 m-2 shadow z-3 rounded-circle delete-post-btn", data: { confirm: "Delete this post?" }, style: "width: 35px; height: 35px;" do %>
+            <i class="bi bi-trash"></i>
+          <% end %>
+        <% end %>
+
+        <%= image_tag post.image, class: "w-100 h-auto d-block" if post.image.attached? %>
+        
+        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex flex-column justify-content-center align-items-center hover-opacity-100" style="z-index: 2;">
+          <div class="text-white fw-bold fs-4 mb-3 text-center px-2" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+            Shared by <%= post.user.first_name || 'Anonymous' %>
+          </div>
           
-          <% if post.user_id == current_user.id %>
-            <%= button_to community_post_path(post), method: :delete, class: "btn btn-danger btn-sm position-absolute top-0 end-0 m-2 shadow z-3 rounded-circle", data: { confirm: "Delete this post?" }, style: "width: 35px; height: 35px;" do %>
-              <i class="bi bi-trash"></i>
+          <% if post.splat.attached? %>
+            <%= link_to community_post_path(post), class: "btn btn-primary btn-lg fw-bold rounded-pill shadow hover-scale" do %>
+              <i class="bi bi-box-arrow-in-right me-1"></i> Step In
             <% end %>
           <% end %>
-
-          <%= image_tag post.image, class: "w-100 h-auto", style: "display: block;" if post.image.attached? %>
-          
-          <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex flex-column justify-content-center align-items-center hover-opacity-100" style="z-index: 2;">
-            <div class="text-white fw-bold fs-4 mb-3 text-center px-2" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
-              Shared by <%= post.user.first_name || 'Anonymous' %>
-            </div>
-            
-            <% if post.splat.attached? %>
-              <%= link_to community_post_path(post), class: "btn btn-primary btn-lg fw-bold rounded-pill shadow hover-scale" do %>
-                <i class="bi bi-box-arrow-in-right me-1"></i> Step In
-              <% end %>
-            <% end %>
-          </div>
-
         </div>
+
       </div>
     <% end %>
   </div>
