@@ -1,72 +1,54 @@
 import { Controller } from "@hotwired/stimulus"
+import html2canvas from "html2canvas"
 
 export default class extends Controller {
-  static targets = ["book"]
+  connect() {
+    if (this.element.dataset.refresh === "true") {
+      this.refreshTimer = setTimeout(() => {
+        if (window.location.pathname.match(/^\/entries\/\d+$/)) {
+          window.location.reload();
+        }
+      }, 10000);
+    }
+  }
+
+  disconnect() {
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+  }
 
   async download(event) {
-    event.preventDefault(); 
+    event.preventDefault();
+    const target = document.getElementById('journal-book-download-target') || this.element.querySelector('.journal-book');
+    if (!target) return;
+
+    const originalHTML = event.currentTarget.innerHTML;
+    event.currentTarget.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>...';
     
-    const btn = event.currentTarget;
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-    btn.disabled = true;
-
     try {
-      const book = this.bookTarget;
-      const page = book.querySelector('.journal-page');
-
-      const origScrollTop = page.scrollTop;
-      
-      let maxHeight = page.clientHeight; 
-      page.querySelectorAll('.canvas-element').forEach(el => {
-        let bottom = el.offsetTop + el.offsetHeight;
-        if (bottom > maxHeight) maxHeight = bottom;
-      });
-      maxHeight += 100;
-      const origBookHeight = book.style.height;
-      const origBookOverflow = book.style.overflow;
-      const origPageHeight = page.style.height;
-      const origPageOverflow = page.style.overflow;
-      const origPagePos = page.style.position;
-      const origPagePad = page.style.paddingBottom;
-
-      page.scrollTop = 0;
-      book.style.height = `${maxHeight}px`;
-      book.style.overflow = 'visible';
-      page.style.height = `${maxHeight}px`;
+      const page = target.querySelector('.journal-page');
+      const oldOverflow = page.style.overflow;
+      const oldHeight = page.style.height;
       page.style.overflow = 'visible';
-      page.style.position = 'relative';
-      page.style.paddingBottom = '0px';
+      page.style.height = 'max-content';
 
-      await new Promise(r => setTimeout(r, 150)); 
-
-      const canvas = await html2canvas(book, {
-        scale: 2, 
+      const isMobile = window.innerWidth < 768;
+      const canvas = await html2canvas(target, {
+        scale: isMobile ? 1 : 2,
         useCORS: true,
-        backgroundColor: "#fdfbf7",
-        windowWidth: book.scrollWidth,
-        windowHeight: maxHeight
+        backgroundColor: '#fdfbf7'
       });
-
-      book.style.height = origBookHeight;
-      book.style.overflow = origBookOverflow;
-      page.style.height = origPageHeight;
-      page.style.overflow = origPageOverflow;
-      page.style.position = origPagePos;
-      page.style.paddingBottom = origPagePad;
-      page.scrollTop = origScrollTop;
-
-      const link = document.createElement("a");
-      link.download = `my_journal_${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL("image/png");
+      
+      page.style.overflow = oldOverflow;
+      page.style.height = oldHeight;
+      
+      const link = document.createElement('a');
+      link.download = `journal-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
       link.click();
-
-      btn.innerHTML = '<i class="bi bi-check-lg"></i>';
-      setTimeout(() => { btn.innerHTML = originalHtml; btn.disabled = false; }, 2000);
-    } catch (e) {
-      console.error(e);
-      btn.innerHTML = '<i class="bi bi-x-lg"></i>';
-      setTimeout(() => { btn.innerHTML = originalHtml; btn.disabled = false; }, 2000);
+    } catch(e) {
+      alert("Failed to download image.");
+    } finally {
+      event.currentTarget.innerHTML = originalHTML;
     }
   }
 }

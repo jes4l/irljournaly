@@ -97,6 +97,8 @@ class EntriesController < ApplicationController
     image_attachment = ActiveStorage::Attachment.find_by(id: params[:image_id])
     
     if image_attachment
+      CommunityPost.where(original_image_id: image_attachment.id).destroy_all
+
       filename = image_attachment.blob.filename.to_s
       system("pkill -f '#{filename}'")
       
@@ -132,9 +134,13 @@ class EntriesController < ApplicationController
     return if entry.new_record?
     
     active_image_ids = entry.content.to_s.scan(/data-image-id=["']?(\d+)["']?/).flatten.map(&:to_i)
-    
+    active_image_ids += entry.content.to_s.scan(/image-id-(\d+)/).flatten.map(&:to_i)
+    active_image_ids.uniq!
+
     entry.images.each do |img|
       unless active_image_ids.include?(img.id)
+        CommunityPost.where(original_image_id: img.id).destroy_all
+
         filename = img.blob.filename.to_s
         system("pkill -f '#{filename}'")
         splat = entry.splats.attachments.find { |s| s.filename.to_s == "#{img.id}.ply" }

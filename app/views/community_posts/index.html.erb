@@ -9,7 +9,7 @@
 
   <div class="community-masonry">
     <% @posts.each do |post| %>
-      <div class="community-masonry-item position-relative overflow-hidden group-hover rounded-4 shadow-sm">
+      <div class="community-masonry-item position-relative overflow-hidden group-hover rounded-4 shadow-sm" tabindex="0" style="cursor: pointer;">
         
         <% if post.user_id == current_user.id %>
           <%= button_to community_post_path(post), method: :delete, class: "btn btn-danger btn-sm position-absolute top-0 end-0 m-2 shadow z-3 rounded-circle delete-post-btn", data: { confirm: "Delete this post?" }, style: "width: 35px; height: 35px;" do %>

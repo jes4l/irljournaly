@@ -1,63 +1,48 @@
-<div class="journal-container mt-4" data-controller="journal-editor">
-  
+<div class="journal-container" data-controller="journal-editor">
   <div class="journal-book" data-action="mousemove->journal-editor#handleMove mouseup->journal-editor#handleEnd mouseleave->journal-editor#handleEnd touchmove->journal-editor#handleMove touchend->journal-editor#handleEnd touchcancel->journal-editor#handleEnd keydown->journal-editor#handleKeydown">
     
-    <div class="position-absolute top-0 start-0 m-2 m-md-4 p-2 p-md-3 border border-dark rounded bg-white shadow-sm text-center z-3" style="font-family: 'Patrick Hand', cursive; line-height: 1;">
-      <div class="fw-bold" style="font-size: clamp(2rem, 5vw, 3.5rem);"><%= Date.today.strftime("%d") %></div>
-      <div style="font-size: clamp(1rem, 3vw, 1.5rem);"><%= Date.today.strftime("%B '%y") %></div>
-      
+    <div class="journal-sticker">
+      <div class="sticker-day"><%= Date.today.strftime("%d") %></div>
+      <div class="sticker-month"><%= Date.today.strftime("%B '%y") %></div>
       <% mood = @entry.sentiment.presence || 'Neutral' %>
       <% bg_class = mood == 'Good' ? 'bg-success' : (mood == 'Bad' ? 'bg-danger' : 'bg-secondary') %>
-      
-      <div data-journal-editor-target="moodBadge" class="mt-2 badge <%= bg_class %> text-white fs-6 shadow-sm border border-dark">
+      <div data-journal-editor-target="moodBadge" class="badge <%= bg_class %> text-white border border-dark sticker-mood">
         Mood: <%= mood %>
       </div>
     </div>
 
-    <div class="journal-page w-100 h-100 position-absolute top-0 start-0" data-journal-editor-target="canvas">
+    <div class="journal-page" data-journal-editor-target="canvas">
       <% if @entry.content.present? %>
         <%== @entry.content %>
       <% end %>
-    </div>
-
-    <div class="journal-toolbar shadow">
-      <div class="d-flex align-items-center gap-2">
-        <label for="font-size-range" class="mb-0 text-dark fw-bold" style="font-family: sans-serif; font-size: 0.8rem;">Size</label>
-        <input type="range" id="font-size-range" aria-label="Font size" class="form-range" min="1" max="7" value="4" data-journal-editor-target="sizeInput" data-action="input->journal-editor#changeSize" style="width: 70px;">
-      </div>
-
-      <div class="vr bg-secondary mx-1"></div>
-
-      <button class="btn btn-outline-dark border-0 btn-sm" data-journal-editor-target="boldBtn" data-action="click->journal-editor#format" data-command="bold" title="Bold" aria-label="Format Bold" tabindex="0"><i class="bi bi-type-bold"></i></button>
-      <button class="btn btn-outline-dark border-0 btn-sm" data-journal-editor-target="italicBtn" data-action="click->journal-editor#format" data-command="italic" title="Italic" aria-label="Format Italic" tabindex="0"><i class="bi bi-type-italic"></i></button>
-      <button class="btn btn-outline-dark border-0 btn-sm" data-journal-editor-target="underlineBtn" data-action="click->journal-editor#format" data-command="underline" title="Underline" aria-label="Format Underline" tabindex="0"><i class="bi bi-type-underline"></i></button>
-      
-      <select class="form-select form-select-sm w-auto border-dark bg-transparent font-weight-bold" data-journal-editor-target="fontInput" data-action="change->journal-editor#changeFont" aria-label="Font Selection" tabindex="0">
-        <option value="'Patrick Hand', cursive">Patrick Hand</option>
-        <option value="Arial, sans-serif">Arial</option>
-        <option value="Georgia, serif">Georgia</option>
-        <option value="'Courier New', Courier, monospace">Courier</option>
-        <option value="'Comic Sans MS', cursive">Comic Sans</option>
-      </select>
-
-      <div class="vr bg-secondary mx-2"></div>
-
-      <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#addText" title="Add Text" aria-label="Add Textbox" tabindex="0">
-        <i class="bi bi-pencil-fill"></i>
-      </button>
-      <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#triggerImage" title="Add Image" aria-label="Add Image" tabindex="0">
-        <i class="bi bi-image-fill"></i>
-      </button>
-
-      <div class="vr bg-secondary mx-2"></div>
-
-      <button class="btn btn-success btn-sm fw-bold rounded-pill px-3" data-action="click->journal-editor#save" aria-label="Save Journal" tabindex="0">Save</button>
     </div>
 
     <%= form_with model: @entry, url: entries_path, method: :post, html: { class: "d-none", data: { journal_editor_target: "form" } } do |f| %>
       <%= f.hidden_field :content, data: { journal_editor_target: "contentInput" } %>
       <%= f.file_field :images, multiple: true, accept: "image/*", data: { journal_editor_target: "imageInput", action: "change->journal-editor#handleImage" } %>
     <% end %>
+  </div>
 
+  <div class="journal-toolbar shadow">
+    <div class="d-flex align-items-center gap-2">
+      <label for="font-size-range" class="mb-0 text-dark fw-bold" style="font-family: sans-serif; font-size: 0.8rem;">Size</label>
+      <input type="range" id="font-size-range" class="form-range" min="1" max="7" value="4" data-journal-editor-target="sizeInput" data-action="input->journal-editor#changeSize" style="width: 70px;">
+    </div>
+    <div class="vr bg-secondary mx-1"></div>
+    <button class="btn btn-outline-dark border-0 btn-sm" data-journal-editor-target="boldBtn" data-action="click->journal-editor#format" data-command="bold"><i class="bi bi-type-bold"></i></button>
+    <button class="btn btn-outline-dark border-0 btn-sm" data-journal-editor-target="italicBtn" data-action="click->journal-editor#format" data-command="italic"><i class="bi bi-type-italic"></i></button>
+    <button class="btn btn-outline-dark border-0 btn-sm" data-journal-editor-target="underlineBtn" data-action="click->journal-editor#format" data-command="underline"><i class="bi bi-type-underline"></i></button>
+    <select class="form-select form-select-sm w-auto border-dark bg-transparent font-weight-bold" data-journal-editor-target="fontInput" data-action="change->journal-editor#changeFont">
+      <option value="'Patrick Hand', cursive">Patrick Hand</option>
+      <option value="Arial, sans-serif">Arial</option>
+      <option value="Georgia, serif">Georgia</option>
+      <option value="'Courier New', Courier, monospace">Courier</option>
+      <option value="'Comic Sans MS', cursive">Comic Sans</option>
+    </select>
+    <div class="vr bg-secondary mx-2"></div>
+    <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#addText" title="Add Text"><i class="bi bi-pencil-fill"></i></button>
+    <button class="btn btn-dark btn-sm rounded-circle px-2" data-action="click->journal-editor#triggerImage" title="Add Image"><i class="bi bi-image-fill"></i></button>
+    <div class="vr bg-secondary mx-2"></div>
+    <button class="btn btn-success btn-sm fw-bold rounded-pill px-3" data-action="click->journal-editor#save">Save</button>
   </div>
 </div>
