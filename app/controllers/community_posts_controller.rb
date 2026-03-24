@@ -13,6 +13,11 @@ class CommunityPostsController < ApplicationController
     img_attachment = ActiveStorage::Attachment.find_by(id: params[:image_id])
     
     if img_attachment
+      if CommunityPost.exists?(original_image_id: img_attachment.id)
+        render json: { success: false, error: "This image has already been posted to the community." }, status: :unprocessable_entity
+        return
+      end
+
       entry = img_attachment.record
       splat_attachment = entry.splats.attachments.find { |s| s.filename.to_s == "#{img_attachment.id}.ply" }
 

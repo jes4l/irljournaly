@@ -37,10 +37,21 @@ body.journal-active {
   border: calc(2px * var(--journal-scale, 1)) solid #333;
   text-align: center;
   box-shadow: 0 calc(4px * var(--journal-scale, 1)) calc(10px * var(--journal-scale, 1)) rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
-  .sticker-day { font-family: 'Patrick Hand', cursive; font-size: calc(2.5rem * var(--journal-scale, 1)); line-height: 1; font-weight: bold; }
-  .sticker-month { font-family: 'Patrick Hand', cursive; font-size: calc(1.2rem * var(--journal-scale, 1)); line-height: 1; }
-  .sticker-mood { font-size: calc(1rem * var(--journal-scale, 1)); padding: calc(5px * var(--journal-scale, 1)) calc(10px * var(--journal-scale, 1)); margin-top: calc(8px * var(--journal-scale, 1)); border-width: calc(1px * var(--journal-scale, 1)); }
+  .sticker-day { font-family: 'Patrick Hand', cursive; font-size: calc(40px * var(--journal-scale, 1)) !important; line-height: 1; font-weight: bold; }
+  .sticker-month { font-family: 'Patrick Hand', cursive; font-size: calc(19px * var(--journal-scale, 1)) !important; line-height: 1; }
+  .sticker-mood { 
+    font-size: calc(16px * var(--journal-scale, 1)) !important; 
+    padding: calc(5px * var(--journal-scale, 1)) calc(10px * var(--journal-scale, 1)) !important; 
+    margin-top: calc(8px * var(--journal-scale, 1)) !important; 
+    border-width: calc(2px * var(--journal-scale, 1)) !important; 
+    border-radius: calc(10px * var(--journal-scale, 1)) !important;
+    line-height: 1.2 !important;
+  }
 }
 
 .journal-page {
@@ -113,6 +124,8 @@ body.journal-active {
   line-height: 1.3;
   font-size: calc(24px * var(--journal-scale, 1));
   padding: calc(10px * var(--journal-scale, 1));
+  word-break: break-word;
+  white-space: pre-wrap;
   
   &:empty:before { content: attr(data-placeholder); color: #888; pointer-events: none; display: block; }
 }
@@ -154,6 +167,7 @@ body.journal-active {
 
 .read-only-book .drag-handle, .read-only-book .resize-handle { display: none !important; }
 .read-only-book .canvas-content { border-color: transparent !important; background: transparent !important; resize: none !important; }
+.read-only-book .canvas-element.canvas-text .canvas-content { height: auto !important; }
 
 .community-overlay {
   opacity: 0;

@@ -51,7 +51,8 @@
       <% end %>
     </div>
     
-    <div class="journal-page" data-controller="journal-viewer" data-journal-viewer-target="canvas">
+    <% posted_image_ids = CommunityPost.where(original_image_id: valid_images.map(&:id)).pluck(:original_image_id) %>
+    <div class="journal-page" data-controller="journal-viewer" data-journal-viewer-target="canvas" data-journal-viewer-posted-ids-value="<%= posted_image_ids.to_json %>">
       <%== @entry.content %>
     </div>
   </div>

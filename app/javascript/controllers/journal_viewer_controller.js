@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["canvas"]
+  static values = { postedIds: Array }
 
   connect() {
     document.body.classList.add('journal-active');
@@ -27,6 +28,9 @@ export default class extends Controller {
 
       const scaleFactor = containerWidth / 1000;
       this.element.style.setProperty('--journal-scale', scaleFactor);
+      if (this.element.parentElement) {
+        this.element.parentElement.style.setProperty('--journal-scale', scaleFactor);
+      }
 
       this.element.querySelectorAll('.canvas-element').forEach(el => {
         if (el.dataset.x) {
@@ -52,9 +56,12 @@ export default class extends Controller {
     this.element.querySelectorAll('.canvas-img-container').forEach(container => {
       const classList = Array.from(container.classList);
       const idClass = classList.find(c => c.startsWith('image-id-'));
-      const imageId = idClass ? idClass.replace('image-id-', '') : container.dataset.imageId;
+      const imageIdStr = idClass ? idClass.replace('image-id-', '') : container.dataset.imageId;
+      const imageId = imageIdStr ? parseInt(imageIdStr, 10) : null;
 
       if (!container.querySelector('.community-overlay') && imageId) {
+        const isPosted = this.hasPostedIdsValue && this.postedIdsValue.includes(imageId);
+
         container.setAttribute('tabindex', '0'); 
         container.style.cursor = 'pointer'; 
 
@@ -65,11 +72,20 @@ export default class extends Controller {
         overlay.style.backgroundColor = "rgba(255, 255, 255, 0.4)";
         overlay.style.backdropFilter = "blur(2px)";
         
-        overlay.innerHTML = `
-          <button type="button" class="btn btn-primary btn-sm rounded-pill shadow fw-bold" data-action="click->journal-viewer#postToCommunity" data-image-id="${imageId}">
-            <i class="bi bi-globe me-1"></i> Post to Community
-          </button>
-        `;
+        if (isPosted) {
+          overlay.innerHTML = `
+            <button type="button" class="btn btn-success btn-sm rounded-pill shadow fw-bold" disabled>
+              <i class="bi bi-check-circle me-1"></i> Posted
+            </button>
+          `;
+        } else {
+          overlay.innerHTML = `
+            <button type="button" class="btn btn-primary btn-sm rounded-pill shadow fw-bold" data-action="click->journal-viewer#postToCommunity" data-image-id="${imageId}">
+              <i class="bi bi-globe me-1"></i> Post to Community
+            </button>
+          `;
+        }
+        
         container.appendChild(overlay);
 
         container.addEventListener('click', (e) => {
@@ -109,11 +125,14 @@ export default class extends Controller {
       const data = await response.json();
       
       if (data.success) {
-        button.innerHTML = '<i class="bi bi-check-circle me-1"></i> Posted!';
+        button.innerHTML = '<i class="bi bi-check-circle me-1"></i> Posted';
         button.classList.replace('btn-primary', 'btn-success');
         
         setTimeout(() => {
-          button.closest('.community-overlay').classList.remove('show-overlay');
+          const overlay = button.closest('.community-overlay');
+          if (overlay) {
+            overlay.classList.remove('show-overlay');
+          }
         }, 1500);
       } else {
         alert(data.error || "Could not post to community.");

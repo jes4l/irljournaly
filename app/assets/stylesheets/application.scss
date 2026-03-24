@@ -33,6 +33,13 @@ input[type="range"].form-range::-moz-range-thumb { background-color: #212529 !im
   min-height: 40px;
 }
 
+.calendar-day span {
+  font-size: 1.5rem !important;
+  @media (min-width: 768px) {
+    font-size: 2.2rem !important;
+  }
+}
+
 .calendar-day { transition: all 0.2s; }
 .calendar-day:not(.bg-success):not(.bg-danger):not(.bg-secondary):hover,
 .calendar-day:not(.bg-success):not(.bg-danger):not(.bg-secondary):focus-visible {
@@ -43,7 +50,14 @@ input[type="range"].form-range::-moz-range-thumb { background-color: #212529 !im
 .calendar-day.bg-danger:hover { background-color: #c82333 !important; cursor: pointer; filter: brightness(0.9); }
 .calendar-day.bg-secondary:hover { background-color: #5a6268 !important; cursor: pointer; filter: brightness(0.9); }
 
-.calendar-header { font-weight: bold; border-bottom: none !important; }
+.calendar-header { 
+  font-weight: bold; 
+  border-bottom: none !important; 
+  font-size: 1.2rem;
+  @media (min-width: 768px) {
+    font-size: 2.5rem !important;
+  }
+}
 .hover-scale { transition: transform 0.2s; &:hover, &:focus-visible { transform: scale(1.1); } }
 
 .hover-opacity-100 { opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(2px); }
