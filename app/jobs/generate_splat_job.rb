@@ -4,6 +4,8 @@ require 'timeout'
 
 class GenerateSplatJob < ApplicationJob
   queue_as :default
+  
+  retry_on Timeout::Error, wait: :exponentially_longer, attempts: 3
 
   def perform(attachment_id)
     attachment = ActiveStorage::Attachment.find_by(id: attachment_id)
@@ -26,13 +28,20 @@ class GenerateSplatJob < ApplicationJob
       
       pid = nil
       begin
-        Timeout.timeout(600) do
+        Timeout.timeout(1800) do
           pid = Process.spawn(command, pgroup: true)
           Process.wait(pid)
         end
       rescue Timeout::Error
-        Rails.logger.error("ML Sharp timed out for #{image_blob.filename}")
-        Process.kill("-TERM", Process.getpgid(pid)) if pid rescue nil
+        Rails.logger.error("ML Sharp timed out for #{image_blob.filename} after 30 minutes")
+        if pid
+          begin
+            Process.kill("-TERM", Process.getpgid(pid))
+          rescue
+            nil
+          end
+        end
+        raise Timeout::Error
       end
 
       ply_file = Dir.glob(File.join(output_dir, "*.ply")).first

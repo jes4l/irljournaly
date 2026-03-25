@@ -1,7 +1,7 @@
 <% if @post.splat.attached? %>
   <div id="splat-overlay" class="splat-overlay active" data-controller="splat-viewer" 
-       data-splat-viewer-urls-value="<%= [rails_blob_path(@post.splat, only_path: true)].to_json %>"
-       data-splat-viewer-image-urls-value="<%= [rails_blob_path(@post.image, only_path: true)].to_json if @post.image.attached? %>">
+       data-splat-viewer-urls-value="<%= [rails_storage_proxy_path(@post.splat, only_path: true)].to_json %>"
+       data-splat-viewer-image-urls-value="<%= [rails_storage_proxy_path(@post.image, only_path: true)].to_json if @post.image.attached? %>">
        
     <%= link_to community_posts_path, class: "btn-close-splat text-decoration-none", aria: { label: "Back to Gallery" } do %>
       <i class="bi bi-x-lg"></i>

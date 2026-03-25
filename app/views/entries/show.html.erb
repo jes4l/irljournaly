@@ -60,7 +60,7 @@
 </div>
 
 <% if valid_splats.any? && remaining_splats == 0 %>
-  <div id="splat-overlay" class="splat-overlay" data-controller="splat-viewer" data-splat-viewer-urls-value="<%= valid_splats.map { |s| rails_blob_path(s, only_path: true) }.to_json %>" data-splat-viewer-image-urls-value="<%= valid_images.map { |img| rails_blob_path(img, only_path: true) }.to_json %>">
+  <div id="splat-overlay" class="splat-overlay" data-controller="splat-viewer" data-splat-viewer-urls-value="<%= valid_splats.map { |s| rails_storage_proxy_path(s, only_path: true) }.to_json %>" data-splat-viewer-image-urls-value="<%= valid_images.map { |img| rails_storage_proxy_path(img, only_path: true) }.to_json %>">
     <button class="btn-close-splat" onclick="document.getElementById('splat-overlay').classList.remove('active'); if(window.speechSynthesis) window.speechSynthesis.cancel(); document.querySelectorAll('audio, video').forEach(m => m.pause());"><i class="bi bi-x-lg"></i></button>
     <div class="position-absolute start-50 translate-middle-x d-flex align-items-center gap-3 z-3 splat-controls-container">
       <button class="btn btn-light rounded-circle shadow d-flex align-items-center justify-content-center hover-scale" style="width: 55px; height: 55px; border: 2px solid #212529;" data-action="click->splat-viewer#resetCamera"><i class="bi bi-arrow-counterclockwise fs-4 text-dark"></i></button>

@@ -96,7 +96,7 @@ export default class extends Controller {
 
     slide.innerHTML = `
       <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; z-index: -1; filter: blur(5px) brightness(0.7);" />
-      <div class="position-absolute top-50 start-50 translate-middle text-white text-center loading-indicator">
+      <div class="position-absolute top-50 start-50 translate-middle text-white text-center loading-indicator w-100 px-3">
         <div class="spinner-border mb-2" role="status" style="width: 3rem; height: 3rem;"></div>
         <div class="fw-bold" style="font-family: 'Patrick Hand', cursive; font-size: 1.5rem; text-shadow: 2px 2px 4px #000;">Loading splat...</div>
       </div>
@@ -149,7 +149,8 @@ export default class extends Controller {
       'cameraUp': [0, 1, 0],
       'halfPrecisionCovariancesOnGPU': true,
       'devicePixelRatio': 1, 
-      'antialias': false     
+      'antialias': false,
+      'sharedMemoryForWorkers': false 
     });
 
     this.viewers[index] = viewer;
@@ -177,8 +178,15 @@ export default class extends Controller {
       if (img) img.style.display = 'none';
       
     } catch (error) {
+      console.error("Splat load error:", error);
       if (this.viewers[index]) {
-        if (loader) loader.innerHTML = `<div class="text-danger fw-bold" style="text-shadow: 1px 1px 2px #000;">Failed</div>`;
+        if (loader) {
+          loader.innerHTML = `
+            <div class="text-danger fw-bold mb-2" style="font-size: 2.5rem; text-shadow: 1px 1px 2px #000;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="text-danger fw-bold" style="text-shadow: 1px 1px 2px #000;">Failed to load.</div>
+            <div class="text-white mt-1 small" style="text-shadow: 1px 1px 2px #000;">${error.message}</div>
+          `;
+        }
         this.viewers[index] = null;
       }
     } finally {
