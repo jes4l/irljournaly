@@ -32,6 +32,8 @@
         <div class="col p-1">
           <% if day.month == @current_date.month %>
             <% entry = @entries_by_date[day] %>
+            <% is_today = (day == Date.today) %>
+            <% today_glow_style = is_today ? "box-shadow: 0 0 15px rgba(0,0,0,0.4) !important;" : "" %>
             
             <% if entry %>
               <% bg_class = case entry.sentiment
@@ -42,14 +44,14 @@
                             end %>
                             
               <%= link_to entry_path(entry), class: "text-decoration-none d-block", aria: { label: "View journal entry for #{day.strftime('%B %d, %Y')}" } do %>
-                <div class="rounded calendar-day d-flex justify-content-center align-items-center <%= bg_class %> shadow-sm border border-dark hover-scale">
+                <div class="rounded calendar-day d-flex justify-content-center align-items-center <%= bg_class %> shadow-sm border border-dark hover-scale" style="<%= today_glow_style %>">
                   <span class="fw-bold fs-5 fs-md-2"><%= day.day %></span>
                 </div>
               <% end %>
-            <% elsif day == Date.today %>
+            <% elsif is_today %>
               <%= link_to new_entry_path, class: "text-decoration-none text-dark d-block", aria: { label: "Create journal entry for today" } do %>
-                <div class="rounded calendar-day d-flex justify-content-center align-items-center bg-white shadow-sm border border-primary border-2 hover-scale">
-                  <span class="fw-bold fs-5 fs-md-2 text-primary"><%= day.day %></span>
+                <div class="rounded calendar-day d-flex justify-content-center align-items-center border border-dark border-2 hover-scale" style="background-color: transparent; <%= today_glow_style %>">
+                  <span class="fw-bold fs-5 fs-md-2 text-dark"><%= day.day %></span>
                 </div>
               <% end %>
             <% else %>
