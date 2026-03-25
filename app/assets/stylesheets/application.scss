@@ -1,8 +1,8 @@
 @import "bootstrap";
 @import "journal";
 
-body, * {
-  font-family: 'Patrick Hand', cursive !important;
+body {
+  font-family: 'Patrick Hand', cursive;
 }
 
 *:focus-visible { outline: 3px solid #0d6efd !important; outline-offset: 2px; border-radius: 4px; }
