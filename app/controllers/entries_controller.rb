@@ -102,7 +102,7 @@ class EntriesController < ApplicationController
       filename = image_attachment.blob.filename.to_s
       system("pkill -f '#{filename}'")
       
-      splat = image_attachment.record.splats.attachments.find { |s| s.filename.to_s == "#{image_attachment.id}.ply" }
+      splat = image_attachment.record.splats.attachments.find { |s| s.filename.to_s == "#{image_attachment.id}.splat" }
       splat&.purge
       
       failed_splat = image_attachment.record.splats.attachments.find { |s| s.filename.to_s == "#{image_attachment.id}.failed" }
@@ -143,7 +143,7 @@ class EntriesController < ApplicationController
 
         filename = img.blob.filename.to_s
         system("pkill -f '#{filename}'")
-        splat = entry.splats.attachments.find { |s| s.filename.to_s == "#{img.id}.ply" }
+        splat = entry.splats.attachments.find { |s| s.filename.to_s == "#{img.id}.splat" }
         splat&.purge
         
         failed_splat = entry.splats.attachments.find { |s| s.filename.to_s == "#{img.id}.failed" }

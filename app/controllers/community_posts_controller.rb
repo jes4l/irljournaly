@@ -19,7 +19,7 @@ class CommunityPostsController < ApplicationController
       end
 
       entry = img_attachment.record
-      splat_attachment = entry.splats.attachments.find { |s| s.filename.to_s == "#{img_attachment.id}.ply" }
+      splat_attachment = entry.splats.attachments.find { |s| s.filename.to_s == "#{img_attachment.id}.splat" }
 
       post = current_user.community_posts.create!(original_image_id: img_attachment.id)
       

@@ -104,11 +104,12 @@ export default class extends Controller {
   }
 
   async settleAndLoad() {
-    this.cleanupDistantViewers()
+    // 1. Stop all inactive viewers from rendering to save GPU/CPU
     this.viewers.forEach((v, i) => {
       if (v && i !== this.currentIndex) v.stop()
     })
 
+    // 2. Load or Start the current viewer
     if (!this.viewers[this.currentIndex]) {
       await this.loadViewer(this.currentIndex)
     } else {
@@ -116,22 +117,15 @@ export default class extends Controller {
       setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 50)
     }
 
+    // 3. Pre-load the NEXT splat in the background
     if (this.currentIndex + 1 < this.urlsValue.length && !this.viewers[this.currentIndex + 1]) {
       this.loadViewer(this.currentIndex + 1)
     }
-  }
 
-  cleanupDistantViewers() {
-    this.viewers.forEach((v, i) => {
-      if (Math.abs(i - this.currentIndex) > 1) {
-        if (v) {
-          try { v.dispose() } catch(e) {}
-          this.viewers[i] = null
-        }
-        this.loadingStates[i] = false
-        this.resetSlideDOM(i)
-      }
-    })
+    // 4. Pre-load the PREVIOUS splat in the background
+    if (this.currentIndex - 1 >= 0 && !this.viewers[this.currentIndex - 1]) {
+      this.loadViewer(this.currentIndex - 1)
+    }
   }
 
   async loadViewer(index) {

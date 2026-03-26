@@ -45,15 +45,22 @@ class GenerateSplatJob < ApplicationJob
       end
 
       ply_file = Dir.glob(File.join(output_dir, "*.ply")).first
+      splat_file = File.join(output_dir, "output.splat")
 
-      if ply_file && entry.reload && ActiveStorage::Attachment.exists?(id: attachment.id)
+      if ply_file
+        conversion_script = Rails.root.join("lib", "ply_to_splat.py")
+        conversion_command = "bash -c 'cd #{ml_sharp_path} && source venv/bin/activate && python #{conversion_script} #{ply_file} #{splat_file}'"
+        system(conversion_command)
+      end
+
+      if File.exist?(splat_file) && entry.reload && ActiveStorage::Attachment.exists?(id: attachment.id)
         entry.splats.attach(
-          io: File.open(ply_file),
-          filename: "#{attachment.id}.ply",
+          io: File.open(splat_file),
+          filename: "#{attachment.id}.splat",
           content_type: 'application/octet-stream'
         )
       else
-        Rails.logger.error("ML Sharp failed or image was deleted for #{image_blob.filename}")
+        Rails.logger.error("ML Sharp or conversion failed for #{image_blob.filename}")
         
         if entry.reload && ActiveStorage::Attachment.exists?(id: attachment.id)
           dummy_file_path = File.join(output_dir, "failed.txt")

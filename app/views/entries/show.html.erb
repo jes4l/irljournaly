@@ -1,7 +1,7 @@
 <% 
   valid_images = @entry.images
   processed_splats = @entry.splats.select { |splat| valid_images.any? { |img| splat.filename.to_s.start_with?("#{img.id}.") } }
-  valid_splats = @entry.splats.select { |splat| splat.filename.to_s.end_with?(".ply") }
+  valid_splats = @entry.splats.select { |splat| splat.filename.to_s.end_with?(".splat") }
   stuck_images = valid_images.select { |img| img.created_at < 30.minutes.ago && !processed_splats.any? { |s| s.filename.to_s.start_with?("#{img.id}.") } }
   remaining_splats = [0, valid_images.count - processed_splats.count - stuck_images.count].max
 %>
@@ -26,7 +26,7 @@
             <button class="btn btn-secondary fw-bold rounded-3 shadow btn-sm px-2 px-md-3" disabled><i class="bi bi-x-circle me-1"></i> Failed</button>
           <% end %>
         <% else %>
-          <button class="btn btn-secondary fw-bold rounded-3 shadow btn-sm px-2 px-md-3" disabled><span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Generating...</button>
+          <button class="btn btn-secondary fw-bold rounded-3 shadow btn-sm px-2 px-md-3" disabled><span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span><%= remaining_splats %> Generating...</button>
          <% end %>
       <% end %>
       <% if @entry.created_at.to_date == Date.today %>
