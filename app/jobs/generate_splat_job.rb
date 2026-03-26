@@ -24,7 +24,7 @@ class GenerateSplatJob < ApplicationJob
       File.binwrite(input_file_path, image_blob.download)
 
       ml_sharp_path = "/Users/jesal.vadgama/Desktop/ml-sharp"
-      command = "bash -c 'cd #{ml_sharp_path} && source venv/bin/activate && sharp predict -i #{input_dir} -o #{output_dir}'"
+      command = "bash -c 'cd \"#{ml_sharp_path}\" && source venv/bin/activate && sharp predict -i \"#{input_dir}\" -o \"#{output_dir}\"'"
       
       pid = nil
       begin
@@ -49,7 +49,7 @@ class GenerateSplatJob < ApplicationJob
 
       if ply_file
         conversion_script = Rails.root.join("lib", "ply_to_splat.py")
-        conversion_command = "bash -c 'cd #{ml_sharp_path} && source venv/bin/activate && python #{conversion_script} #{ply_file} #{splat_file}'"
+        conversion_command = "bash -c 'cd \"#{ml_sharp_path}\" && source venv/bin/activate && python \"#{conversion_script}\" \"#{ply_file}\" \"#{splat_file}\"'"
         system(conversion_command)
       end
 
