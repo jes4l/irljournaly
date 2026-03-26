@@ -1,7 +1,11 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
 one:
-  name: MyString
+  name: "Entry One"
+  user: one
+  content: "Having a pretty good day today!"
+  sentiment: "Good"
 
 two:
-  name: MyString
+  name: "Entry Two"
+  user: two
+  content: "I am feeling very neutral."
+  sentiment: "Neutral"

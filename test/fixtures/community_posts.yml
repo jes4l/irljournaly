@@ -1,9 +1,7 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
 one:
   user: one
   original_image_id: 1
 
 two:
   user: two
-  original_image_id: 1
+  original_image_id: 2
