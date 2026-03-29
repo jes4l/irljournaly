@@ -2,6 +2,16 @@
 
 Welcome to IRL Journaly! This is my graduate project for solirius reply that uses Ruby on Rails, 3D Gaussian Splatting (ml-sharp) and AI text processing (Groq). 
 
+![IRL Journaly Homepage](public/Images/homepage.png)
+
+![IRL Journaly Write Page](public/Images/writepage.png)
+
+![IRL Journaly My Journal Page](public/Images/journalpage.png)
+
+![IRL Journaly Community Page](public/Images/communitypage.png)
+
+![IRL Journaly Guassian Splat](public/Images/guassiansplat.png)
+
 Follow the instructions below to get your local development environment set up.
 
 ## Prerequisites
@@ -23,12 +33,14 @@ cd irljournaly
 
 ## 2. Set up ML-Sharp (3D Gaussian Splatting)
 
-IRL Journaly relies on Apple's `ml-sharp` to convert 2D images into 3D Gaussian Splats. You need to download it and set up a Python virtual environment.
+IRL Journaly relies on Apple's `ml-sharp` to convert 2D images into 3D Gaussian Splats. You can check out their official repository here for more details and documentation: [Apple ML-Sharp on GitHub](https://github.com/apple/ml-sharp).
+
+You need to download it and set up a Python virtual environment to run it locally alongside the Rails app.
 
 1. **Clone the `ml-sharp` repository** somewhere on your computer (e.g., your Desktop):
    ```bash
-   cd ~/Desktop
-   git clone [https://github.com/apple/ml-sharp.git](https://github.com/apple/ml-sharp.git)
+   cd Desktop
+   git clone https://github.com/apple/ml-sharp.git
    cd ml-sharp
    ```
 
